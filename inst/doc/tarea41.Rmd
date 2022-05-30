@@ -1,0 +1,301 @@
+---
+title: "Expresión Diferencial en RNA-seq: edgeR"
+author: "Asier Ortega Legarreta"
+date: "`r Sys.Date()`"
+output:   
+  html_document:
+    df_print: paged
+    latex_engine: lualatex
+  pdf_document:
+    latex_engine: lualatex
+vignette: >
+  %\VignetteIndexEntry{tarea41}
+  \usepackage[utf8]{inputenc}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+```{=html}
+<style>
+body {
+text-align: justify}
+</style>
+```
+
+# Tarea 41
+
+```{r}
+doAll = FALSE
+```
+
+Cargamos todas las librerías que utilizaremos.
+
+- pacman: Package Management Tool 
+- asierortega: contains the data we going to work with, and useful functions.
+- limma: Linear Models for Microarray Data. 
+- edgeR: Empirical Analysis of Digital Gene Expression Data in R.
+- ReportingTools: Tools for making reports in various formats.
+- SummarizedExperiment: SummarizedExperiment container.
+
+```{r, eval = doAll}
+library(pacman)
+library(asierortega)
+pacman::p_load(SummarizedExperiment)
+pacman::p_load(edgeR)
+pacman::p_load(ggplot2)
+pacman::p_load(ReportingTools)
+```
+
+&nbsp;
+
+### Carga de datos
+
+Cargamos el  **PRJNA548871.rda** generado en la tarea 2 (llamado PRJNA548871.Rmd) de RNA-seq.
+
+```{r, eval = doAll}
+data(PRJNA548871, package = "asierortega")
+```
+
+Quitaremos aquellos genes que no estén anotados por ninguna de las tres identificadores que le añadimos "GENENAME", "ENTREZID" y "SYMBOL". He creado una función que quita todas aquellas filas que no tenga ninguna de las columnas anotadas dentro del paquete "asierortega". La función se llama "cleanNA". A continuación se muestra lo que realiza la función. 
+
+```{r, eval = doAll}
+PRJNA548871 = PRJNA548871[which(apply(rowData(PRJNA548871),1,function(y) sum(is.na(y))!=3)),]
+PRJNA548871_funcion = cleanNA(PRJNA548871, Ncolumns = 3)
+```
+
+&nbsp;
+
+### Análisis de expresión diferencial con EdgeR
+
+A continuación analizaremos la expresión diferencial de nuestros datos de RNA-seq. Recordemos que tenemos 16 muestras de microglia en total donde 8 de ellas en la que se han inducido por teinopatía por oxígeno (OIR), y otros 8 en las que no (nonOIR) (controles). Este experimento no contiene covariables.
+
+Para realizar el análisis nos debemos fijar en la columna de "treatment" debido a que es en la que se específica aquellas muestras donde se ha aplicado el tratamiento (OIR) y en los que no (nonOIR). 
+
+Crearemos un objeto tipo de clase dgeList, este objeto tiene como atributos la matriz de conteos y un data.frame con la información de las muestras (incluyendo el factor de normalización y tamaño de librería). 
+
+
+```{r, eval = doAll}
+Ldge = DGEList(counts = assay(PRJNA548871), group = colData(PRJNA548871)[, "treatment"])
+attributes(Ldge)
+head(Ldge$counts)
+class(Ldge$counts)
+head(Ldge$samples)
+class(Ldge$samples)
+```
+
+A continuación mostraremos el tamaño de libraría. 
+
+```{r, eval = doAll, warning = FALSE}
+ggplot(Ldge$samples, aes(x = lib.size)) + geom_dotplot()
+```
+
+&nbsp;
+
+#### Eliminación de filas con conteos bajos
+
+A continuación eliminaremos aquellas filas, genes, con conteos bajos y para ello utilizaremos **CPM**, conteos por millón. 
+Nos quedaremos con aquellas filas, genes, donde la suma de cada uno de los elementos de las filas tenga un valor igual o mayor que 2 (conteo por millón). Del SummarizeExperiment también nos quedamos dichos genes.
+
+```{r, eval = doAll}
+keep = rowSums(cpm(Ldge)>1) >= 2
+Ldge = Ldge[keep, keep.lib.sizes = FALSE]
+PRJNA548871_keep = PRJNA548871[keep,]
+```
+
+&nbsp;
+
+### Realizamos el análisis de expresión diferencial
+
+Una vez eliminado los genes con conteos bajos realizamos el análisis de expresión diferencial. Lo estimaremos por dispersión común y por gen.
+
+```{r, eval = doAll}
+## Estimación dispersión común
+Ldge.c = estimateCommonDisp(Ldge) 
+## Estimación dispersión por gen
+Ldge.t =  estimateTagwiseDisp(Ldge.c)
+## Aplicamos exactTest
+et.c = exactTest(Ldge.c)
+et.t = exactTest(Ldge.t)
+```
+
+Mostramos los resultados con topTags.
+
+```{r, eval = doAll}
+topTags(et.c)
+topTags(et.t)
+```
+
+A continuación obtendremos los p-valores ajustados por los métodos de Benjamini-Hochberg y de Bonferroni.
+
+```{r, eval = doAll}
+pvalues_c = et.c$table$PValue
+pvalues_t =et.t$table$PValue
+pBH_c = p.adjust(pvalues_c, method = "BH")
+pBH_t = p.adjust(pvalues_t, method = "BH")
+pBonferroni_c = p.adjust(pvalues_c, method = "bonferroni")
+pBonferroni_t = p.adjust(pvalues_t, method = "bonferroni")
+```
+
+Fijamos una tasa de error alpha = 0.05. Y veremos aquellos genes con un p-valor y p-valor ajustado menores a nuestra tasa de especificada, es decir que sean significativos. Utilizaremos los p-valores obtenidos con la dispersión por gen.
+
+```{r, eval = doAll}
+length(pvalues_t)
+alpha = 0.05
+significativos_p_t = which(pvalues_t < alpha)
+length(significativos_p_t)
+
+significativos_BH_t = which(pBH_t < alpha)
+length(significativos_BH_t)
+
+significativos_Bonferroni_t =  which(pBonferroni_t < alpha)
+length(significativos_Bonferroni_t)
+```
+
+Si nos fijamos en los resultados de 13204 genes que tenemos una vez descartado aquellos con pocos conteos, nos dan 3349 con un p-valor menor a 0,05 (significativos), y ajustando los p-valores con Benjamini-Hochberg y Bonferroni nos dan 1787 y 376 genes significativos, respectivamente. Como es de esperar el método de Bonferroni es más conservador obteniendo un menor número de genes significativos. 
+
+&nbsp;
+
+### Generar el data.frame con los p-valores y p-valores ajustados
+
+Primero guardaremos en un vector el nombre de las cabeceras para luego implementarlas y generamos el data.frame. Generaremos el data.frame con los sin los hipervínculos correspondientes al identificador, y después con ellos. 
+
+Primero generaremos el data.frame de con los p-valores obtenidos con la estimación de dispersión común (estimateCommonDisp).
+
+```{r, eval = doAll}
+cabeceras_c = c(colnames(rowData(PRJNA548871_keep)), "p.value_CommonDisp", "p.adjust_BH", "p.adjust_Bonferroni")
+ensembl_url = asierortega::ensembl2url(rowData(PRJNA548871_keep)[, "ENSEMBL"])
+entrzid_url = asierortega::entrezid2url(rowData(PRJNA548871_keep)[, "ENTREZID"])
+## Construimos dataframe
+df51_c = data.frame(rowData(PRJNA548871_keep)[, "ENSEMBL"], rowData(PRJNA548871_keep)[, "GENENAME"], rowData(PRJNA548871_keep)[, "ENTREZID"], rowData(PRJNA548871_keep)[, "SYMBOL"], pvalues_c, pBH_c, pBonferroni_c)
+df51_c_hip = data.frame(ensembl_url, rowData(PRJNA548871_keep)[, "GENENAME"], entrzid_url, rowData(PRJNA548871_keep)[, "SYMBOL"], pvalues_c, pBH_c, pBonferroni_c)
+
+colnames(df51_c) = cabeceras_c
+colnames(df51_c_hip) = cabeceras_c
+head(df51_c)
+```
+
+A continuación generaremos el data.frame de con los p-valores obtenidos con la estimación de dispersión por gen (estimateTagwiseDisp).
+
+```{r, eval = doAll}
+## Sin hipervinculo
+cabeceras_t = c(colnames(rowData(PRJNA548871_keep)), "p.value_TagwiseDisp", "p.adjust_BH", "p.adjust_Bonferroni")
+ensembl_url = asierortega::ensembl2url(rowData(PRJNA548871_keep)[, "ENSEMBL"])
+entrzid_url = asierortega::entrezid2url(rowData(PRJNA548871_keep)[, "ENTREZID"])
+## Construimos data.frame
+df51_t = data.frame(rowData(PRJNA548871_keep)[, "ENSEMBL"], rowData(PRJNA548871_keep)[, "GENENAME"], rowData(PRJNA548871_keep)[, "ENTREZID"], rowData(PRJNA548871_keep)[, "SYMBOL"], pvalues_t, pBH_t, pBonferroni_t)
+df51_t_hip = data.frame(ensembl_url, rowData(PRJNA548871_keep)[, "GENENAME"], entrzid_url, rowData(PRJNA548871_keep)[, "SYMBOL"], pvalues_t, pBH_t, pBonferroni_t)
+
+colnames(df51_t) = cabeceras_t
+colnames(df51_t_hip) = cabeceras_t
+head(df51_t)
+```
+
+Ordenaremos el data.frame generado de manera ascendente para así poder ver los primero los genes que presentan mayor expresión diferencial en el análisis. 
+
+```{r, eval = doAll}
+df51_c_sorted = df51_c[order(df51_c$p.value_CommonDisp, decreasing = FALSE),]
+df51_t_sorted = df51_t[order(df51_t$p.value_TagwiseDisp, decreasing = FALSE),]
+
+head(df51_c_sorted)
+head(df51_t_sorted)
+```
+
+&nbsp;
+
+### Función sumex2df
+
+He realiado una función llamada **sumex2df** el cual con debemos introducir como argumento el summarize experiment, el nombre de la columna donde se encuentran la información de las muestras con tratamiento y control ("treatment" por defecto), el método que utilizaremos "c" para aplicar la estimación de dispersión común y "t" para estimación dispersión por gen. Además debemos decirle si queremos incluir los hipervínculos o no en los identificadores (ENSEMBL y ENTREZID).
+
+```{r, eval = doAll}
+df51_c_funcion = sumex2df(PRJNA548871_keep, columnName = "treatment", method = "c", hiperlink = FALSE)
+df51_t_funcion = sumex2df(PRJNA548871_keep, columnName = "treatment", method = "t", hiperlink = FALSE)
+df51_c_hip_funcion = sumex2df(PRJNA548871_keep, columnName = "treatment", method = "c", hiperlink = TRUE)
+df51_t_hip_funcion = sumex2df(PRJNA548871_keep, columnName = "treatment", method = "c", hiperlink = TRUE)
+```
+
+&nbsp;
+
+### Informe
+
+A continnuación generaremos los dos informes con los data.frames con los hipervínculos que hemos creado anteriormente. Para ello utilizaremos el paquete Reporting Tools. 
+
+```{r , eval=doAll}
+nombre_c = "Informe_ED_CommonDisp_PRJNA548871"
+nombre_t = "Informe_ED_TagwiseDisp_PRJNA548871"
+
+
+report_c = HTMLReport(shortName = nombre_c, title = nombre_c, reportDirectory = "../docs/articles")
+report_t = HTMLReport(shortName = nombre_t, title = nombre_t, reportDirectory = "../docs/articles")
+
+publish(df51_c_hip, report_c)
+publish(df51_t_hip, report_t)
+
+finish(report_c)
+finish(report_t)
+```
+
+También he creado una función que dado el dataframe, el nombre del informe y la ruta genera el informe HTML (por defecto en el directorio actual). Se llama "makeReport". 
+
+```{r, eval = doAll}
+makeReport(df51_c_funcion, name = "Reportdeprueba", path = "../docs/articles")
+```
+
+&nbsp;
+
+### Conclusiones del estudio
+
+Los datos con los que hemos trabajado corresponden al siguiente [articulo](https://onlinelibrary.wiley.com/doi/full/10.1002/glia.23810).
+En dicho artículo se menciona que el análisis de expresión diferencial se ha realizado con el método DESeq2, lo que las conclusiones las realizaremos en la viñeta "tarea42" que es donde aplicamos este análisis. 
+
+&nbsp;
+
+### Normalización de RNA-seq (opcional)
+
+En principio no debemos normalizar los datos de RNA-seq pero en caso de necesitarlo en un futúro, a continuación se muestra la normalización utilizando el método TMM. 
+
+Utilizaremos la función calcNormFactors el cual calcula los factores de escala para convertir los tamaños del librería sin procesar en tamaños efectivos, aquí aplicamos el método TMM. Una vez hecho esto podemos ver como los factores normalizados cambian.
+
+Realizamos la estimación de la función de densidad de los conteos para las distintas muestras con los conteos originales y una vez aplicados la normalización TMM. 
+
+```{r, eval = doAll}
+data(PRJNA548871, package = "asierortega")
+PRJNA548871 = PRJNA548871[which(apply(rowData(PRJNA548871),1,function(y) sum(is.na(y))!=3)),]
+
+counts0 = assay(PRJNA548871)
+counts0 = data.frame(counts0)
+df0 = reshape2::melt(counts0)
+ini_fdens = ggplot(df0, aes(x=value, colour = variable)) + stat_ecdf()
+ini_fdist = ggplot(df0, aes(x = value,colour = variable))+geom_density()
+
+## Normalizamos con el metodo TMM
+Ldge_norm = calcNormFactors(Ldge, method = "TMM")
+Ldeg_norm = estimateCommonDisp(Ldge_norm)
+
+counts1 = Ldeg_norm$pseudo.counts
+counts1 = data.frame(counts1)
+df0 = reshape2::melt(counts1)
+pos_fdens = ggplot(df0, aes(x = value,colour = variable)) + stat_ecdf()
+pos_fdist = ggplot(df0, aes(x = value,colour = variable)) + geom_density()
+```
+
+
+```{r, eval = doAll}
+summary(Ldge$samples[,"norm.factors"])
+summary(Ldge_norm$samples[,"norm.factors"])
+```
+
+Mostramos las gráficas generadas.
+
+```{r, eval = doAll}
+## funcion de densidad de los conteos inicial
+ini_fdens
+## funcion de distribucion de los conteos inicial
+ini_fdist
+## funcion de densidad de los conteos nromalizado con TMM
+pos_fdens
+## funcion de distribucion de los conteos normalizado con TMM
+pos_fdens
+```
+
+
+
+
+

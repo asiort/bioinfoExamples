@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Asier Ortega Legarreta" />
+
+<meta name="date" content="2021-06-09" />
+
+<title>PRJNA548871</title>
+
+<script src="data:application/javascript;base64,Ly8gUGFuZG9jIDIuOSBhZGRzIGF0dHJpYnV0ZXMgb24gYm90aCBoZWFkZXIgYW5kIGRpdi4gV2UgcmVtb3ZlIHRoZSBmb3JtZXIgKHRvCi8vIGJlIGNvbXBhdGlibGUgd2l0aCB0aGUgYmVoYXZpb3Igb2YgUGFuZG9jIDwgMi44KS4KZG9jdW1lbnQuYWRkRXZlbnRMaXN0ZW5lcignRE9NQ29udGVudExvYWRlZCcsIGZ1bmN0aW9uKGUpIHsKICB2YXIgaHMgPSBkb2N1bWVudC5xdWVyeVNlbGVjdG9yQWxsKCJkaXYuc2VjdGlvbltjbGFzcyo9J2xldmVsJ10gPiA6Zmlyc3QtY2hpbGQiKTsKICB2YXIgaSwgaCwgYTsKICBmb3IgKGkgPSAwOyBpIDwgaHMubGVuZ3RoOyBpKyspIHsKICAgIGggPSBoc1tpXTsKICAgIGlmICghL15oWzEtNl0kL2kudGVzdChoLnRhZ05hbWUpKSBjb250aW51ZTsgIC8vIGl0IHNob3VsZCBiZSBhIGhlYWRlciBoMS1oNgogICAgYSA9IGguYXR0cmlidXRlczsKICAgIHdoaWxlIChhLmxlbmd0aCA+IDApIGgucmVtb3ZlQXR0cmlidXRlKGFbMF0ubmFtZSk7CiAgfQp9KTsK"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<link rel="stylesheet" href="data:text/css,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" type="text/css" />
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">PRJNA548871</h1>
+<h4 class="author">Asier Ortega Legarreta</h4>
+<h4 class="date">2021-06-09</h4>
+
+
+
+<style>
+body {
+text-align: justify}
+</style>
+<div id="tarea-2" class="section level1">
+<h1>Tarea 2</h1>
+<div id="descripción-del-experimento" class="section level2">
+<h2>Descripción del experimento</h2>
+<p><strong>Título</strong>: Temporo-spatial distribution and transcriptional profile of retinal microglia in the oxygen-induced retinopathy mouse model</p>
+<p><strong>Resumen</strong>: Myeloid cells such as resident retinal microglia or infiltrating blood-derived macrophages accumulate in areas of retinal ischemia and neovascularization (RNV) and modulate neovascular eye disease. Their temporo-spatial distribution and biological function in this process, however, remain unclarified. We determined the extent of microglia proliferation and macrophage infiltration in areas of ischemia and RNV using Cx3cr1CreERT2:Rosa26-tdTomato mice and assessed the transcriptional profile of microglia in the oxygen-induced retinopathy (OIR) mouse model. We show that microglia are the predominant myeloid cell population in areas of RNV. Thirty percent of retinal microglia were EdU-positive indicating considerable expansion of local microglia. RNA-Seq revealed an enrichment of processes related to cell division and chemokine receptor binding. We propose that activated retinal MG alter their transcriptional profile, exhibit proliferative ability and are by far the most frequent myeloid cell population in areas of RNV in the OIR model thus presenting a potential target for future therapeutic approaches.</p>
+<p><strong>Objetivo</strong>: Examination of the transcriptional profile of retinal microglia cells in the healthy retina and in the oxygen-induced retinopathy model.</p>
+<div id="datos-del-experimento" class="section level3">
+<h3>Datos del experimento</h3>
+<ul>
+<li>Animal de estudio: Mus musculus</li>
+<li>Número de muestras: 16</li>
+<li>Tecnología: Illumina HiSeq 1000 (Mus musculus)</li>
+</ul>
+<p>En este experimento tendremos por un lado 8 muestras con tratamiento (oxygen-induced retinopathy, <strong>OIR</strong>) y otras 8 muestras sin tratamiento (<strong>nonOIR</strong>).</p>
+</div>
+</div>
+<div id="obtención-de-los-datos" class="section level2">
+<h2>Obtención de los datos</h2>
+<p>Crearemos un directorio llamado bamfiles donde descargaremos los diferentes archivos y alinearemos las secuencias en el mismo generando los ficheros sam y después pasándolos a bam.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> ../../bamfiles</span></code></pre></div>
+<p>De la página del NCBI poniendo nuestro identificador BioProyect tenemos acceso a la información del estudio, los metadatos, el “Accesión list” y las muestras. Desde esta página es una manera de descargar las muestras. Utilizaremos wget. <a href="https://www.ncbi.nlm.nih.gov/Traces/study/?acc=PRJNA548871">Link del estudio PRJNA548871.</a></p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> ../../bamfiles</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">wget</span> https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos3/sra-pub-run-21/SRR9302311/SRR9302311.1</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">wget</span> https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos3/sra-pub-run-19/SRR9302312/SRR9302312.1</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">wget</span> https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos3/sra-pub-run-19/SRR9302313/SRR9302313.1</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">wget</span> https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos3/sra-pub-run-19/SRR9302314/SRR9302314.1</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">wget</span> https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos2/sra-pub-run-15/SRR9302315/SRR9302315.1</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu">wget</span> https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos2/sra-pub-run-15/SRR9302316/SRR9302316.1</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">wget</span> https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos2/sra-pub-run-15/SRR9302317/SRR9302317.1</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="fu">wget</span> https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos3/sra-pub-run-20/SRR9302318/SRR9302318.1</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="fu">wget</span> https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos2/sra-pub-run-15/SRR9302319/SRR9302319.1</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="fu">wget</span> https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos3/sra-pub-run-21/SRR9302320/SRR9302320.1</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="fu">wget</span> https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos3/sra-pub-run-19/SRR9302321/SRR9302321.1</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="fu">wget</span> https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos2/sra-pub-run-15/SRR9302322/SRR9302322.1</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="fu">wget</span> https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos2/sra-pub-run-15/SRR9302323/SRR9302323.1</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="fu">wget</span> https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos3/sra-pub-run-21/SRR9302324/SRR9302324.1</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="fu">wget</span> https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos3/sra-pub-run-20/SRR9302325/SRR9302325.1</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="fu">wget</span> https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos3/sra-pub-run-20/SRR9302326/SRR9302326.1</span></code></pre></div>
+<p>Otra manera de descargar los datos es utilizando prefetch de SRA-Toolkit, este por defecto te descarga los ficheros en el directorio ~/ncbi/public/sra/. Para decirle que nos descargue los ficheros en el directorio que trabajamos le diremos la opción -O y la ruta donde queremos que se descarguen los ficheros.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">prefetch</span> <span class="at">-O</span> ../../bamfiles/ <span class="at">--option-file</span> estadistica/SRR_Acc_List.txt</span></code></pre></div>
+<div id="descarga-del-genoma-de-referencia-y-fichero-de-anotaciones" class="section level3">
+<h3>Descarga del genoma de referencia y fichero de anotaciones</h3>
+<p>Nos descargaremos el genoma de referencia (ya anotado) junto con el fichero de anotaciones de genes desde igenomes de Ensembl. Descargaremos el genoma de referencia GRCm38 que es el mismo que utilizan en el experimento.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">wget</span> http://igenomes.illumina.com.s3-website-us-east-1.amazonaws.com/Mus_musculus/Ensembl/GRCm38/Mus_musculus_Ensembl_GRCm38.tar.gz</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tar</span> xzvf Mus_musculus_Ensembl_GRCm38.tar.gz</span></code></pre></div>
+</div>
+</div>
+<div id="alineamiento-de-las-reads" class="section level2">
+<h2>Alineamiento de las reads</h2>
+<p>Una vez hayamos descargado todos los ficheros los pasaremos de formato NCBI-SRA a FASTQ, para ello utilizaremos fastq-dump de SRA-Toolkit. Para facilitar el proceso utilizaremos el “Accesion list” de nuestro proyecto. Con un bucle donde por cada muestra lo pasaremos a formato FASTQ, y después mapearemos estas reads contra el genoma de referencia (obtenida de ENSEMBL) con el ensamblador bowtie2, obteniendo así un fichero sam con las reads mapeadas. Después con samtools, convertiremos y ordenaremos dichas reads a formato bam.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> SRR_Acc_List.txt <span class="kw">|</span> <span class="cf">while</span> <span class="bu">read</span> <span class="va">file</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="cf">do</span> </span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="ex">fastq-dump</span> <span class="at">-I</span> <span class="at">--split-files</span> <span class="va">$file</span>.sra</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">time</span> bowtie2 <span class="at">--threads</span> 8 <span class="at">-x</span> Mus_musculus/Ensembl/GRCm38/Sequence/Bowtie2Index/genome <span class="at">-U</span> ../<span class="va">$file</span><span class="st">&quot;_1.fastq&quot;</span> <span class="at">-S</span> <span class="va">$file</span><span class="st">&quot;_1.sam&quot;</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="bu">time</span> samtools view <span class="at">--threads</span> 8 <span class="at">-bS</span> <span class="va">$file</span><span class="st">&quot;_1.sam&quot;</span> <span class="kw">|</span> <span class="ex">samtools</span> sort <span class="at">--threads</span> 8 <span class="at">-o</span> <span class="va">$file</span><span class="st">&quot;_1.bam&quot;</span> </span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code></pre></div>
+<p>Una vez obtenidos todos los ficheros bam, generaremos un fichero con los nombres de todos los ficheros bams.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="pp">*</span>.bam <span class="op">&gt;</span> bamfiles.txt</span></code></pre></div>
+</div>
+<div id="generando-el-summarizeexperiment" class="section level2">
+<h2>Generando el SummarizeExperiment</h2>
+<p>Cargamos todas las librerias que utilizaremos. Con p_load() en caso de no tener instalado dicho paquete lo instalaremos. Los paquetes que utilizaremos:</p>
+<ul>
+<li>Rsamtools: Binary alignment (BAM), FASTA, variant call (BCF), and tabix file import.</li>
+<li>GenomicFeatures: Conveniently import and query gene models.</li>
+<li>GenomicAlignments: Representation and manipulation of short genomic alignments.</li>
+<li>AnnotationDbi: Manipulation of SQLite-based annotations in Bioconductor.</li>
+<li>org.Mm.eg.db: org.Mm.eg.db annotation Package.</li>
+</ul>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pacman)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(Rsamtools)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(GenomicFeatures)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(GenomicAlignments)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(AnnotationDbi)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(org.Mm.eg.db)</span></code></pre></div>
+<p>Utilizamos el paquete Rsamtools para hacer el conteo de las reads alineadas. Para ello necesitaremos los ficheros bams y el fichero de anotación.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(<span class="st">&quot;../../bamfiles&quot;</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>sampleTable <span class="ot">=</span> <span class="fu">read.table</span>(<span class="st">&quot;bamfiles.txt&quot;</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>dirActual <span class="ot">=</span>  <span class="fu">paste</span>(<span class="fu">getwd</span>(), <span class="st">&quot;/&quot;</span>, <span class="at">sep=</span><span class="st">&quot;&quot;</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>fls <span class="ot">=</span> <span class="fu">paste</span>(dirActual, sampleTable[,<span class="dv">1</span>], <span class="at">sep =</span> <span class="st">&quot;&quot;</span>)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>bamList <span class="ot">=</span> <span class="fu">BamFileList</span>(fls, <span class="at">index =</span> <span class="fu">character</span>(), <span class="at">yieldSize =</span> <span class="dv">100000</span>, <span class="at">obeyQname =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>gtfFile <span class="ot">=</span> <span class="st">&quot;Mus_musculus/Ensembl/GRCm38/Annotation/Genes/genes.gtf&quot;</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>txdb <span class="ot">=</span> <span class="fu">makeTxDbFromGFF</span>(gtfFile, <span class="at">format =</span> <span class="st">&quot;gtf&quot;</span>)</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>genes <span class="ot">=</span> <span class="fu">exonsBy</span>(txdb, <span class="at">by=</span><span class="st">&quot;gene&quot;</span>)</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>PRJNA548871 <span class="ot">=</span> <span class="fu">summarizeOverlaps</span>(<span class="at">features =</span> genes, <span class="at">read=</span>bamList,</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">mode=</span><span class="st">&quot;Union&quot;</span>,</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">singleEnd=</span><span class="cn">TRUE</span>,    <span class="do">## Porque no son lecturas apareadas</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">ignore.strand=</span><span class="cn">TRUE</span>,</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">fragments=</span><span class="cn">FALSE</span>)</span></code></pre></div>
+<div id="introducción-de-los-metadatos" class="section level3">
+<h3>Introducción de los metadatos</h3>
+<p>Ahora introduciremos los metadatos de nuestro experimento.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>SampleName <span class="ot">=</span> <span class="fu">paste</span>(<span class="st">&quot;GSM38909&quot;</span>, <span class="dv">42</span><span class="sc">:</span><span class="dv">57</span>, <span class="at">sep =</span> <span class="st">&quot;&quot;</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>Run <span class="ot">=</span> <span class="fu">paste</span>(<span class="st">&quot;SRR93023&quot;</span>, <span class="dv">11</span><span class="sc">:</span><span class="dv">26</span>, <span class="at">sep =</span> <span class="st">&quot;&quot;</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>treatment <span class="ot">=</span> <span class="fu">factor</span>(<span class="fu">c</span>(<span class="fu">rep</span>(<span class="st">&quot;OIR&quot;</span>, <span class="dv">8</span>), <span class="fu">rep</span>(<span class="st">&quot;nonOIR&quot;</span>, <span class="dv">8</span>)))</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="fu">colData</span>(PRJNA548871) <span class="ot">=</span> <span class="fu">DataFrame</span>(SampleName,Run , treatment)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="fu">metadata</span>(PRJNA548871)<span class="ot">=</span><span class="fu">list</span>(<span class="st">&quot;Experimenter name&quot;</span><span class="ot">=</span><span class="st">&quot;Clemens Lange&quot;</span>,</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>                           <span class="st">&quot;Organization&quot;</span><span class="ot">=</span><span class="st">&quot;Uniklinik Freiburg&quot;</span>,</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>                           <span class="st">&quot;Title&quot;</span><span class="ot">=</span><span class="st">&quot;Temporo-spatial distribution and transcriptional profile of retinal microglia in the oxygen-induced retinopathy mouse model&quot;</span>,</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>                           <span class="st">&quot;URL&quot;</span><span class="ot">=</span><span class="st">&quot;https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE132731&quot;</span>, </span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>                           <span class="st">&quot;Abstract&quot;</span><span class="ot">=</span> <span class="st">&quot; Myeloid cells such as resident retinal microglia or infiltrating blood-derived macrophages accumulate in areas of retinal ischemia and neovascularization (RNV) and modulate neovascular eye disease. Their temporo-spatial distribution and biological function in this process, however, remain unclarified. We determined the extent of microglia proliferation and macrophage infiltration in areas of ischemia and RNV using Cx3cr1CreERT2:Rosa26-tdTomato mice and assessed the transcriptional profile of microglia in the oxygen-induced retinopathy (OIR) mouse model. We show that microglia are the predominant myeloid cell population in areas of RNV. Thirty percent of retinal microglia were EdU-positive indicating considerable expansion of local microglia. RNA-Seq revealed an enrichment of processes related to cell division and chemokine receptor binding. We propose that activated retinal MG alter their transcriptional profile, exhibit proliferative ability and are by far the most frequent myeloid cell population in areas of RNV in the OIR model thus presenting a potential target for future therapeutic approaches.&quot;</span>)</span></code></pre></div>
+</div>
+<div id="anotación" class="section level3">
+<h3>Anotación</h3>
+<p>Procedemos a anotar los genes con distintos identificadores. Primero debemos mirar nuestro paquete, según el organismo, que tipo de identificadores tiene. Como el genoma de referencia y el fichero de anotaciones son del Ensembl, identificaremos nuestros genes por dicho ID. Para comprobar que se ha anotado correctamente podemos utilizar rowData(PRJNA548871).</p>
+<p>A continuación tendremos algunos identificadores que no estarán anotados, para trabajar de una manera más cómoda quitaremos estos identificadores que no tengan el identificador de ENSEMBL.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">columns</span>(org.Mm.eg.db)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>a <span class="ot">=</span> AnnotationDbi<span class="sc">::</span><span class="fu">select</span>(org.Mm.eg.db,<span class="at">keys=</span><span class="fu">rownames</span>(PRJNA548871),</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>                          <span class="at">columns =</span> <span class="fu">c</span>(<span class="st">&quot;GENENAME&quot;</span>,<span class="st">&quot;ENTREZID&quot;</span>,<span class="st">&quot;ENSEMBL&quot;</span>, <span class="st">&quot;SYMBOL&quot;</span>), <span class="at">keytype =</span> <span class="st">&quot;ENSEMBL&quot;</span>)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>b <span class="ot">=</span> <span class="fu">match</span>(<span class="fu">rownames</span>(PRJNA548871),a[,<span class="st">&quot;ENSEMBL&quot;</span>])</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="fu">rowData</span>(PRJNA548871) <span class="ot">=</span> a[b,]</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>PRJNA548871 <span class="ot">=</span> PRJNA548871[<span class="fu">which</span>(<span class="sc">!</span><span class="fu">is.na</span>(<span class="fu">rowData</span>(PRJNA548871)[,<span class="st">&quot;ENSEMBL&quot;</span>])),]</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>seleccion <span class="ot">=</span> <span class="fu">match</span>(<span class="fu">unique</span>(<span class="fu">rowData</span>(PRJNA548871)[,<span class="st">&quot;ENSEMBL&quot;</span>]), <span class="fu">rowData</span>(PRJNA548871)[,<span class="st">&quot;ENSEMBL&quot;</span>])</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>PRJNA548871 <span class="ot">=</span> PRJNA548871[seleccion,]</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>PRJNA548871</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="fu">assay</span>(PRJNA548871)</span></code></pre></div>
+</div>
+<div id="eliminación-de-los-genes-sin-ninguna-read-alineada" class="section level3">
+<h3>Eliminación de los genes sin ninguna read alineada</h3>
+<p>Observamos que nuestro SummarizeExperiment tiene un total de 46078 filas (genes), pero no todas ellas tienen reads alineadas. Por eso ahora de nuestro SummarizeExperiment eliminaremos aquellos genes sin ninguna read alineada.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>nullsum <span class="ot">=</span> <span class="fu">apply</span>(<span class="fu">assay</span>(PRJNA548871), <span class="dv">1</span>, sum) <span class="sc">==</span> <span class="dv">0</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>PRJNA548871 <span class="ot">=</span> PRJNA548871[<span class="sc">!</span>nullsum,]</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>PRJNA548871</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="fu">assay</span>(PRJNA548871)</span></code></pre></div>
+<p>Una vez eliminamos aquellos genes sin ninguna read alineada nos quedan 27518 genes (de las que tienen al menos 1 read alineada en el). Es decir, al mapear nuestras reads contra el genoma de referencia en el 40,279% de los genes no se ha alineado ninguna read.</p>
+</div>
+<div id="guardado-de-los-datos" class="section level3">
+<h3>Guardado de los datos</h3>
+<p>Una vez ya hemos generado, anotado y eliminado los genes sin ninguna read guardaremos nuestro SummarizeExperiment, para posteriormente poder trabajar con el.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(PRJNA548871, <span class="at">file =</span> <span class="st">&quot;PRJNA548871.rda&quot;</span>)</span></code></pre></div>
+</div>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

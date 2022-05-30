@@ -1,0 +1,205 @@
+---
+title: "Análisis de grupos de genes (con tami)"
+author: "Asier Ortega Legarreta"
+date: "`r Sys.Date()`"
+output:   
+  html_document:
+    df_print: paged
+    latex_engine: lualatex
+  pdf_document:
+    latex_engine: lualatex
+vignette: >
+  %\VignetteIndexEntry{tarea52}
+  \usepackage[utf8]{inputenc}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+```{=html}
+<style>
+body {
+text-align: justify}
+</style>
+```
+
+# Tarea 52
+
+```{r}
+doAll = FALSE
+```
+
+Cargamos las librerías que utilicemos.
+
+- pacman: Package Management Tool 
+- asierortega: contains the data we going to work with, and useful functions.
+- tami: Statistical Bioinformatics.
+- ggplot2: A system for 'declaratively' creating graphics.
+- Biobase: Base functions for Bioconductor.
+- SummarizedExperiment: SummarizedExperiment container.
+
+```{r, eval = doAll}
+library(pacman)
+library(asierortega)
+library(tami)
+pacman::p_load(ggplot2)
+pacman::p_load(Biobase)
+pacman::p_load(SummarizedExperiment)
+```
+
+&nbsp;
+
+## Análisis del data set de microarrays
+
+#### Carga de datos
+Cargamos el fichero **gse115484.rda** generado en la tarea 1 de microarrays. Previamente estos datos han sido preprocesados normalizandolos con el método RMA.
+
+```{r, eval = doAll}
+data(gse115484, package = "asierortega")
+```
+
+En los datos guardados tenemos varias sondas a las que no les corresponde ningún gen o que no se le ha asignado ningún gen, por lo que eliminaremos todas aquellas sondas que no estén anotados. De esta manera solamente trabajaremos con sondas que correspondan a genes. 
+
+```{r, eval = doAll}
+gse115484 = asierortega::unifyeset(gse115484, ID = "ENTREZID")
+```
+
+Cargamos los datos de KEGG para Sus scrofa. 
+
+```{r, eval = doAll}
+data(sscKEGGgsc, package = "asierortega")
+```
+
+&nbsp;
+
+### Análisis de grupos de genes GSE115484
+
+Para llevar a cabo el análisis utilizaremos la función **GeneSetTest** del paquete **tami**.
+
+#### Hipótesis autoconetenida (*self-contained*)
+
+La hipótesis nula autoconetenida o *self-contained* supone que ningún gen del conjunto de genes está asociado con el fenotipo. En nuestro ExpressionSet la columna que clasifica las muestras es **Tissue**.
+A continuación vemos distintos parametros que decidimos:
+- test = rowtmod = el análisis de expresión diferencial marginal se hace mediante t-test moderados (igual que el procedimiento que sigue limma).
+- association = "statistic": con esto especificamos que utilizamos el estadístico del contraste como medida de asociación fenotipo-expresión.
+- GeneSetNullDistr = self-contained: hipótesis nula autocontenida.
+- nmax = 100: número máximo de combinaciones que se consideran.
+- gsc = ****: colección de genes. 
+- descriptive = mean: se utiliza la media como medida de enriquecimiento.
+- correction = "BH":  el p-valor se ajustará con Benjamini-Hochberg. 
+
+```{r, eval = doAll}
+gse115484_self_mean = GeneSetTest(x = gse115484, y = "Tissue",
+         test = rowtmod, association = "statistic", correction = "BH",
+         GeneNullDistr = "randomization", GeneSetNullDistr = "self-contained",
+         alternative = "two-sided",nmax = 100, id = "ENTREZID",
+         gsc = sscKEGGgsc, descriptive = mean, foutput = "gse115484_self_mean")
+```
+
+Ahora repetiremos el mismo análisis pero utilizando el la media máxima como medida de enriquecimiento (descriptive = maxmean). Con maxmean quiere decir que se calcula la media de los valores positivos y de devuelve el maximo de estos valores. 
+
+```{r, eval = doAll}
+gse115484_self_maxmean = GeneSetTest(x = gse115484, y = "Tissue",
+         test = rowtmod, association = "statistic", correction = "BH",
+         GeneNullDistr = "randomization", GeneSetNullDistr = "self-contained",
+         alternative = "two-sided",nmax = 100, id = "ENTREZID",
+         gsc = sscKEGGgsc, descriptive = maxmean, foutput = "gse115484_self_maxmean")
+```
+
+Repetiremos el mismo analisis pero esta vez utilizando el valor de la mediana (descriptive = median).
+
+```{r, eval = doAll}
+gse115484_self_median = GeneSetTest(x = gse115484, y = "Tissue",
+         test = rowtmod, association = "statistic", correction = "BH",
+         GeneNullDistr = "randomization", GeneSetNullDistr = "self-contained",
+         alternative = "two-sided",nmax = 100, id = "ENTREZID",
+         gsc = sscKEGGgsc, descriptive = median, foutput = "gse115484_self_median")
+```
+
+&nbsp;
+
+#### Hipótesis competitiva
+
+La hipótesis nula competitiva asume que los genes del conjunto de genes no están más asociados con el fenotipo que los genes fuera del conjunto de genes. 
+
+Repetiremos los mismos análisis anteriores, pero esta vez cambiaremos el parámetro GeneSetNullDistr = "competitive".
+
+```{r, eval = doAll}
+set.seed(123)
+gse115484_comp_mean = GeneSetTest(x = gse115484, y = "Tissue",
+         test = rowtmod, association = "statistic", correction = "BH",
+         GeneNullDistr = "randomization", GeneSetNullDistr = "competitive",
+         alternative = "two-sided",nmax = 100, id = "ENTREZID",
+         gsc = sscKEGGgsc, descriptive = mean, foutput = "gse115484_comp_mean")
+
+set.seed(123)
+gse115484_comp_maxmean = GeneSetTest(x = gse115484, y = "Tissue",
+         test = rowtmod, association = "statistic", correction = "BH",
+         GeneNullDistr = "randomization", GeneSetNullDistr = "competitive",
+         alternative = "two-sided",nmax = 100, id = "ENTREZID",
+         gsc = sscKEGGgsc, descriptive = maxmean, foutput = "gse115484_comp_maxmean")
+
+set.seed(123)
+gse115484_comp_median = GeneSetTest(x = gse115484, y = "Tissue",
+         test = rowtmod, association = "statistic", correction = "BH",
+         GeneNullDistr = "randomization", GeneSetNullDistr = "competitive",
+         alternative = "two-sided",nmax = 100, id = "ENTREZID",
+         gsc = sscKEGGgsc, descriptive = median, foutput = "gse115484_comp_median")
+```
+
+
+A continuación obtendremos los dataframe correspondientes a cada uno. Con la función anterior pone como cabecera el identificador de GO, pero como hemos utilizado la base de datos KEGG vamos a cambiarlo. 
+
+```{r, eval = doAll}
+db_name = "KEGG"
+gse115484_self_mean_df = tidy(gse115484_self_mean)
+gse115484_comp_mean_df = tidy(gse115484_comp_mean)
+gse115484_self_maxmean_df = tidy(gse115484_self_maxmean)
+gse115484_comp_maxmean_df = tidy(gse115484_comp_maxmean)
+gse115484_self_median_df = tidy(gse115484_self_median)
+gse115484_comp_median_df = tidy(gse115484_comp_median)
+
+colnames(gse115484_self_mean_df)[1] = db_name
+colnames(gse115484_comp_mean_df)[1] = db_name
+colnames(gse115484_self_maxmean_df)[1] = db_name
+colnames(gse115484_comp_maxmean_df)[1] = db_name
+colnames(gse115484_self_median_df)[1] = db_name
+colnames(gse115484_comp_median_df)[1] = db_name
+```
+
+Observaremos de los distintos análisis que hemos realizado cuales de ellos cuantos grupos significativos encontramos. 
+
+```{r, eval = doAll}
+alpha = 0.05
+length(gse115484_comp_maxmean_df$adjp)
+significativos_p_self_mean = which(gse115484_self_mean_df$adjp < alpha)
+length(significativos_p_self_mean)
+
+significativos_p_comp_mean = which(gse115484_comp_mean_df$adjp < alpha)
+length(significativos_p_comp_mean)
+
+significativos_p_self_maxmean = which(gse115484_self_maxmean_df$adjp < alpha)
+length(significativos_p_self_maxmean)
+
+significativos_p_comp_maxmean = which(gse115484_comp_maxmean_df$adjp < alpha)
+length(significativos_p_comp_maxmean)
+
+significativos_p_self_median = which(gse115484_self_median_df$adjp < alpha)
+length(significativos_p_self_median)
+
+significativos_p_comp_median = which(gse115484_comp_median_df$adjp < alpha)
+length(significativos_p_comp_median)
+```
+
+Estos resultados son muy interesantes porque de 213 grupos la cantidad de valores significativos varía mucho dependiendo de de si utilizamos una hipótesis nula autoconetenida o competitiva. En el caso de la autocontenida se obtiene mayor número de grupos de genes significativo y se obtienen mayor número de grupos significativos al utilizar el maxmean como medida de enriquecimiento. En la siguiente tabla se recogen los resultados.
+
+&nbsp;
+
+| GeneSetNullDistr | Descriptive | Significativos (adjP < 0,05) |
+|------------------|-------------|------------------------------|
+| self-contained   | mean        | 191                          |
+| competitive      | mean        | 3                            |
+| self-contained   | maxmean     | 194                          |
+| competitive      | maxmean     | 9                            |
+| self-contained   | median      | 191                          |
+| competitive      | median      | 3                            |
+
+&nbsp;

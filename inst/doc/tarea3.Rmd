@@ -1,0 +1,225 @@
+---
+title: "Tarea 3: Expresión diferencial en microarrays"
+author: "Asier Ortega Legarreta"
+date: "`r Sys.Date()`"
+output:   
+  html_document:
+    df_print: paged
+    latex_engine: lualatex
+  pdf_document:
+    latex_engine: lualatex
+vignette: >
+  %\VignetteIndexEntry{tarea3}
+  \usepackage[utf8]{inputenc}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+```{=html}
+<style>
+body {
+text-align: justify}
+</style>
+```
+
+```{r}
+doAll = TRUE
+```
+
+# Tarea 3
+
+Cargamos todas las librerias que utilizaremos.
+
+- pacman: Package Management Tool 
+- Biobase: Base functions for Bioconductor.
+- genefilter: methods for filtering genes from high-throughput experiments.
+- limma: Linear Models for Microarray Data. 
+- asierortega: contains the data we going to work with, and useful functions.
+
+```{r, eval = doAll}
+library(pacman)
+pacman::p_load(Biobase)
+pacman::p_load(genefilter)
+pacman::p_load(limma)
+library(asierortega)
+```
+
+&nbsp;
+
+### Objetivos
+- En esta tarea realizamos un análisis de expresión diferencial marginal, es decir, gen a gen.
+- Los datos que utilizamos son los obtenidos en la primera tarea con microarrays, gse115484.
+
+Utilizaremos métodos basados en t-test:
+
+    -Un test de la t con varianzas iguales.  
+    -Un test de la t moderado (limma).  
+
+&nbsp;
+
+### Métodos basados en t-test
+
+#### Carga de datos
+Cargamos el fichero **gse115484.rda** generado en la tarea 1 de microarrays. Previamente estos datos han sido preprocesados normalizándolos con el método RMA.
+
+```{r, eval = doAll}
+data(gse115484, package = "asierortega")
+```
+
+En los datos guardados tenemos varias sondas a las que no les corresponde ningún gen o que no se le ha asignado ningún gen, por lo que eliminaremos todas aquellas sondas que no estén anotados. De esta manera solamente trabajaremos con sondas que correspondan a genes. De 24123 sondas hemos pasado a tener 9887 sondas anotados. Recordemos que estamos trabajando con sondas del Microarray Affymetrix Porcine.
+También Hemos generado una función que realiza este mismo proceso llamado **unifyeset**. 
+
+```{r, eval = doAll}
+gse115484 = gse115484[which(!is.na(fData(gse115484)[,"ENTREZID"])),]
+seleccion = match(unique(fData(gse115484)[,"ENTREZID"]),fData(gse115484)[,"ENTREZID"])
+gse115484 = gse115484[seleccion,]
+## Utilizando la funcion
+gse115484_funcion = unifyeset(gse115484, ID = "ENTREZID")
+```
+
+&nbsp;
+
+#### Test de la t con varianzas iguales (**genefilter**)
+
+El primer análisis es de expresión diferencial gen a gen, marginal. Para ello utilziaremos el paquete **genefilter** con el que 
+calculamos los estadísticos t (test de la t con varianzas iguales) y sus p-valores asociados.
+
+Con lo que vemos en los resultados de tt, donde cada fila corresponde a un gen, y la columna *statistic* el estadístico t (que por defecto se asumen varianzas iguales) del contraste de hipótesis para la igualdad de las medias. La columna *dm* muestra la diferencia de medias y la columna *p.value* el p-valor como el nombre indica. 
+
+Posteriormente guardamos los p-valores obtenidos en una variable. Donde con rowttests aplicamos los t-test para cada gen.
+
+```{r, eval= doAll}
+tissue = pData(gse115484)[,"Tissue"]
+tt = genefilter::rowttests(gse115484, tissue)
+head(tt)
+p_values = tt$p.value
+```
+
+&nbsp;
+
+#### Obtención de los p-valores ajustados
+
+A continuación vamos a utilizar los métodos de Benjamini-Hochberg y de Bonferroni. De esta manera de los p-valores originales obtendremos los p-valores ajustados. Para ello utilizaremos la función p.adjust.
+
+```{r eval = doAll}
+pBH = p.adjust(p_values, method = "BH")
+pBonferroni = p.adjust(p_values, method = "bonferroni")
+```
+
+Fijamos una tasa de error alpha = 0.05. Y veremos aquellos genes con un p-valor y p-valor ajustado menores a nuestra tasa de especificada, es decir que sean significativos. 
+
+```{r, eval = doAll}
+alpha = 0.05
+significativos_p = which(p_values < alpha)
+length(significativos_p)
+
+significativos_BH = which(pBH < alpha)
+length(significativos_BH)
+
+significativos_Bonferroni =  which(pBonferroni < alpha)
+length(significativos_Bonferroni)
+```
+
+Observamos que con los p-valores originales obtenemos un total de 8849 genes significativos. Tras aplicar el método de Benjamini-Hochberg esta cifra se reduce a 8818, y aplicando Bonferroni a 7443. 
+
+&nbsp;
+
+#### Test de la t moderado (**limma**)
+
+Utilizando el paquete limma, analizaremos al expresión diferencial de los genes de dos tejidos distintos en *Sus scrofa* hígado y músculo, así posteriormente poder ver aquellos genes con una expresión similar y puedan estar involucrados en participar en las mismas rutas metabólicas o procesos similares (de esto hablaremos en el último apartado).
+
+Determinaremos la matriz diseño, y los mostramos.
+
+```{r, eval=doAll}
+design = model.matrix(~0 + tissue)
+colnames(design) = c("Liver", "Gluteus_medius")
+head(design)
+```
+
+Ajustaremos los modelos lineales. 
+
+```{r, eval = doAll}
+fit = lmFit(gse115484, design)
+(contrast.matrix = makeContrasts(dif = Liver - Gluteus_medius, levels = design))
+```
+
+Vamos a estimar.
+
+```{r, eval = doAll}
+fit2 = contrasts.fit(fit, contrast.matrix)
+fit2 = eBayes(fit2)
+```
+
+Ajustamos los p-valores. Con los métodos de Benjamini-Hochberg y de Bonferroni, de los p valores obtenidos con limma.
+
+```{r, eval = doAll}
+p_value_limma = fit2$p.value
+pBH_limma = p.adjust(p_value_limma, method = "BH")
+pBonferroni_limma = p.adjust(p_value_limma, method = "bonferroni")
+```
+
+Ahora mostramos cuales son los más significativos ajustandolos con Benjamini-Hochberg y con Bonferroni.
+
+```{r, eval = doAll}
+topTable(fit2, coef=1, adjust="BH")
+```
+
+```{r, eval = doAll}
+topTable(fit2, coef=1, adjust="bonferroni")
+```
+
+Estos resultados son los esperados, ya que al utilizar el método de BH o Bonferroni los p-valores ajustados son mayores que los p-valores originales, teniendo como resultado una menor cantidad de genes significativos. Aun así obtenemos una gran cantidad de genes significativos, y eso era también de esperar debido a que las muestras recogidas son de dos tejidos diferentes (hígado y músculo), teniendo funciones y estructuras totalmente diferentes. Y en este estudio se buscaban aquellos genes con una expresión similar indicando que pudieran participar en las mismas rutas metabólicas o que participaran en procesos similares. 
+
+&nbsp;
+
+### Contrucción del dataframe con los p-valores y p-valores ajustados
+
+Generaremos un dataframe con la información del fData de nuestro experimento, y además añadiremos los p-valores originales y los ajustados con los otros dos métodos. 
+
+```{r, eval = doAll}
+cabeceras = c(colnames(fData(gse115484)), "p.value", "p.adjust_BH", "p.adjust_Bonferroni")
+df1 = cbind(fData(gse115484), tt$p.value, pBH, pBonferroni)
+colnames(df1) = cabeceras
+head(df1)
+```
+
+&nbsp;
+
+### Función eset2df
+
+He realiado una función llamada **eset2df** el cual con un expression set como argumento devuelve un data.frame el cual tiene la información del fData del ExpressionSet con 3 columnas más de los p-valores objetivos y los adjustados con los métodos de Benjamini-Hochberg y con Bonferroni.
+
+```{r, eval=doAll}
+df1_prueba = eset2df(gse115484, method = 1)
+head(df1_prueba)
+df1_prueba_limma = eset2df(gse115484, method = 2)
+head(df1_prueba_limma)
+```
+
+&nbsp;
+
+### Objetivo del estudio
+
+El objetivo del estudio es buscar aquellos genes que que se expresaran de forma similar en ambos tejidos (hígado y músculo), así agrupar estos genes para poder averiguar si hay grupos de los mismos que estén relacionados en rutas metabólicas o funciones similares. 
+
+[Enlace al artículo](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6591854/)
+González-Prendes R, Mármol-Sánchez E, Quintanilla R, Castelló A et al. About the existence of common determinants of gene expression in the porcine liver and skeletal muscle. BMC Genomics 2019 Jun 24;20(1):518.
+
+Para poder ver aquellos genes con una expresión similar, utilizaremos el objeto "MArrayLM" generado anteriormente con limma, y la función de topTable pero esta vez con todos los genes, y guardarlo en un data.frame. Así tenemos el nombre de todos los genes, sus simbolos, p-valores y p-valores ajustados (con el método de Benjamini-Hochberg).
+
+Después ordenamos el dataframe de manera decreciente, teniendo primero los genes con mayor p-valor obtenido y quitaremos todas aquellas sondas que no se han podido anotar. A continuación cogeremos los primeros 200 genes y los escribimos en un fichero de salida.
+
+```{r, eval = doAll}
+df3 = topTable(fit2, coef=1, adjust="BH", number = length(fit2$coefficients))
+df3_sorted = df3[order(df3$adj.P.Val, decreasing = TRUE),]
+(df3_sorted_filtrado = na.omit(df3_sorted))
+lista_genes = df3_sorted_filtrado$SYMBOL[1:200]
+write.table(df3_sorted_filtrado$SYMBOL[1:200], file="salida_genes.txt", row.names = FALSE, col.names = FALSE)
+```
+
+Estos primeros 200 genes (recordemos que filtrados) se han introducido en la aplicación web [**PANTHER-Gene List Analysis**](http://pantherdb.org/) y se ha seleccionado el organismo *Sus scofra*. De los primeros 200 genes en ambos tejidos (hígado y músculo) han demostrado menor diferencia de expresión, estos 200 genes en que tipo de funciones moleculares estan involucrados.
+A continuación se muestra un gráfico circular donde se explican. 
+
+![**Figura 1.** Gráfica circular de los primeros de las funciones moleculares de los primeros 200 genes con menor diferencia en la expresión de las muestras de hígado y músculo de Sus scrofa.](../docs/reference/pie_graph_funciones_moleculares.png)
+
+Por lo que esta herramienta nos puede ayudar para determinar el objetivo del estudio, aquellos genes que se expresen de forma similar en ambos tejidos y que puedan formar parte de las mismas rutas metabólicas. Como vemos la mayoria de estos genes comparten una función de unión ("binding") y también otros con actividad catalítica.
+
+**Comentario:** en caso de no aparecer el gráfico en la viñeta, la imagen formato png se encuentra en la ruta del paquete "~/asierortega/docs/reference/pie_graph_funciones_moleculares.png".

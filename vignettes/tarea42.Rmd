@@ -1,0 +1,211 @@
+---
+title: "Expresión Diferencial en RNA-seq: DESeq2"
+author: "Asier Ortega Legarreta"
+date: "`r Sys.Date()`"
+output:   
+  html_document:
+    df_print: paged
+    latex_engine: lualatex
+  pdf_document:
+    latex_engine: lualatex
+vignette: >
+  %\VignetteIndexEntry{tarea42}
+  \usepackage[utf8]{inputenc}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+```{=html}
+<style>
+body {
+text-align: justify}
+</style>
+```
+
+# Tarea 42
+
+```{r}
+doAll = FALSE
+```
+
+Cargamos todas las librerías que utilizaremos.
+
+- pacman: Package Management Tool 
+- asierortega: contains the data we going to work with, and useful functions.
+- SummarizedExperiment: SummarizedExperiment container.
+- DESeq2: Differential gene expression analysis based on the negative binomial distribution.
+- ggplot2: A system for 'declaratively' creating graphic.
+- ReportingTools: Tools for making reports in various formats.
+- pheatmap: pretty heatmaps.
+
+```{r, eval = doAll}
+library(pacman)
+library(asierortega)
+pacman::p_load(SummarizedExperiment)
+pacman::p_load(DESeq2)
+pacman::p_load(ggplot2)
+pacman::p_load(ReportingTools)
+pacman::p_load(pheatmap)
+```
+
+&nbsp;
+
+### Carga de datos
+
+Cargamos el  **PRJNA548871.rda** generado en la tarea 2 (llamado PRJNA548871.Rmd) de RNA-seq.
+
+```{r, eval = doAll}
+data(PRJNA548871, package = "asierortega")
+```
+
+Quitaremos aquellos genes que no estén anotados por ninguna de las tres identificadores que le añadimos "GENENAME", "ENTREZID" y "SYMBOL". Utilizando la función que creamos limpiaremos los genes con NA en todos los identificadores. 
+
+```{r, eval = doAll}
+PRJNA548871 = cleanNA(PRJNA548871, Ncolumns = 3)
+```
+
+&nbsp;
+
+### Análisis de expresión diferencial con DESeq2
+
+A continuación analizaremos la expresión diferencial de nuestros datos de RNA-seq. Recordemos que tenemos 16 muestras de microglia en total donde 8 de ellas en la que se han inducido por teinopatía por oxígeno (OIR), y otros 8 en las que no (nonOIR) (controles). Este experimento no contiene covariables. 
+
+Para realizar el análisis nos debemos fijar en la columna de "treatment" debido a que es en la que se específica aquellas muestras donde se ha aplicado el tratamiento (OIR) y en los que no (nonOIR). 
+
+Generaremos el objeto DESeqDataSet utilizando nuestro SummarizeExperiment. Y eliminaremos aquellos genes con conteos bajos. 
+
+```{r, eval = doAll}
+dds =  DESeqDataSet(se = PRJNA548871, design = ~ treatment)
+cantidad_genes_pre = dim(counts(dds))[1]
+keep = rowSums(counts(dds)) >= 10
+dds = dds[keep,]
+PRJNA548871_keep = PRJNA548871[keep,]
+cantidad_genes_post = dim(counts(dds))[1]
+(cantidad_genes_pre - cantidad_genes_post)
+```
+
+Observamos como se han eliminado 3371 genes en este procesado. 
+
+Fijaremos el nivel control como categoría de referencia, en este caso el control es nonOIR.
+
+```{r, eval = doAll}
+dds$treatment <- relevel(dds$treatment, ref  = "nonOIR")
+levels(dds$treatment)
+```
+
+Realizamos el análisis de expresión diferencial basado en la binomial negativa. 
+
+```{r, eval = doAll, warning = FALSE}
+dds = DESeq(dds)
+```
+
+Ahora evaluaremos el coeficiente correspondiente a al comparación entre el nivel con tratamiento (OIR) y el de referencia control (nonOIR). 
+
+Generamos objeto DESeqResults, para poder obtener los p-valores, y obtendremos lo p-valores ajustados por los métodos de Benjamini-Hochberg y de Bonferroni.
+
+
+```{r, eval = doAll, warning = FALSE}
+res = lfcShrink(dds, coef=2)
+pvalues = res$pvalue
+pBH = p.adjust(pvalues, method = "BH")
+pBonferroni = p.adjust(pvalues, method = "bonferroni")
+```
+
+Fijamos una tasa de error alpha = 0.05. Y veremos aquellos genes con un p-valor y p-valor ajustado menores a nuestra tasa de especificada, es decir que sean significativos. 
+
+```{r, eval = doAll}
+length(pvalues)
+alpha = 0.05
+significativos = which(pvalues < alpha)
+length(significativos)
+
+significativos_BH = which(pBH < alpha)
+length(significativos_BH)
+
+significativos_Bonferroni =  which(pBonferroni < alpha)
+length(significativos_Bonferroni)
+```
+
+Si nos fijamos en los resultados de 16934 genes que tenemos una vez descartado aquellos con pocos conteos, nos dan 3969 con un p-valor menor a 0,05 (significativos), y ajustando los p-valores con Benjamini-Hochberg y Bonferroni nos dan 2105 y 464 genes significativos, respectivamente. Como es de esperar el método de Bonferroni es más conservador obteniendo un menor número de genes significativos.
+
+&nbsp;
+
+### Generar el data.frame con los p-valores y p-valores ajustados
+
+Primero guardaremos en un vector el nombre de las cabeceras para luego implementarlas y generamos el data.frame. Generaremos el data.frame con los sin los hipervínculos correspondientes al identificador, y después con ellos. 
+
+Primero generaremos el data.frame de con los p-valores obtenidos con la estimación de dispersión común (estimateCommonDisp).
+
+```{r, eval = doAll}
+cabeceras = c(colnames(rowData(PRJNA548871_keep)), "p.value", "p.adjust_BH", "p.adjust_Bonferroni")
+ensembl_url = asierortega::ensembl2url(rowData(PRJNA548871_keep)[, "ENSEMBL"])
+entrzid_url = asierortega::entrezid2url(rowData(PRJNA548871_keep)[, "ENTREZID"])
+
+## Construimos dataframe
+df51 = data.frame(rowData(PRJNA548871_keep)[, "ENSEMBL"], rowData(PRJNA548871_keep)[, "GENENAME"], rowData(PRJNA548871_keep)[, "ENTREZID"], rowData(PRJNA548871_keep)[, "SYMBOL"], pvalues, pBH, pBonferroni)
+df51_hip = data.frame(ensembl_url, rowData(PRJNA548871_keep)[, "GENENAME"], entrzid_url, rowData(PRJNA548871_keep)[, "SYMBOL"], pvalues, pBH, pBonferroni)
+
+colnames(df51) = cabeceras
+colnames(df51_hip) = cabeceras
+head(df51)
+```
+
+&nbsp;
+
+### Función sumex2dfDESeq2
+
+He creado una función llamada **sumex2dfDESeq2** el cual con debemos introducir como argumento el summarize experiment devuelve un dataframe con los p-valores obtenidos mediante análisis de expresión diferencial empleando el método DESeq2 y sus p-valores ajustados. Es necesario que la columna del colData de nuestro SummarizeExperiment donde se encuentran los grupos que queremos comparar se llame "treatment", esta preparado para este dataset (PRJNA548871) en concreto.
+
+```{r, eval = doAll, warning = FALSE}
+df51_funcion = sumex2dfDESeq2(PRJNA548871, hiperlink = FALSE)
+df51_hip_funcion = sumex2dfDESeq2(PRJNA548871, hiperlink = TRUE)
+```
+
+&nbsp;
+
+### Informe
+
+A continnuación generaremos los dos informes con los data.frames con los hipervínculos que hemos creado anteriormente. Para ello utilizaremos el paquete Reporting Tools. Como ya comentamos en la tarea 41, he creado una función llamada makeReport que genera el informe. 
+
+```{r, eval=doAll}
+makeReport(df51_hip, name = "Informe_ED_DESeq2_PRJNA548871", path = "../docs/articles")
+```
+
+&nbsp;
+
+## Conclusiones del experimento
+
+Ordenaremos el data.frame generado de manera ascendente para así poder ver los primero los genes que presentan mayor expresión diferencial en el análisis. 
+
+```{r, eval = doAll}
+df51_sorted = df51[order(df51$p.value, decreasing = FALSE),]
+head(df51_sorted)
+```
+
+Los datos con los que hemos trabajado corresponden al siguiente [articulo](https://onlinelibrary.wiley.com/doi/full/10.1002/glia.23810).
+En dicho artículo se menciona que el análisis de expresión diferencial se ha realizado con el método DESeq2. De una forma similar a como se ha realizado en el artículo, he hecho un heatmap para poder visualizar mejor y ver las diferencias entre tratamientos (OIR) y controles (nonOIR) de una manera más clara. Al igual que en el artículo utilizaremos los primeros 304 genes que mayor varianza presentan. 
+
+La función VST (Variance Stabilizing Transformation) calcula la tendencia de dispersión y aplica una transformación estabilizadora de la varianza.
+
+
+```{r, eval = doAll}
+vsd = vst(dds, blind = FALSE)
+## Seleccionemos los 304 genes con la mayor varianza entre las muestras
+topVarGenes = head(order(rowVars(assay(vsd)), decreasing = TRUE), 304)
+mat = assay(vsd)[topVarGenes,]
+mat = mat - rowMeans(mat)
+df_anot = as.data.frame(colData(vsd)[, c("treatment")])
+pheatmap(mat, annotation_col = df_anot, show_rownames = FALSE)
+```
+
+&nbsp;
+
+## Genes significativos método **edgeR clásico** vs **DESeq2**
+
+Haremos una pequeña comparacion de los dos métodos que hemos utilizado para realizar el análisis de expresión diferencial, con el método edgeR (tarea 41) y DESeq2 (tarea 42). En la tabla se muesran los genes totales una vez procesado los datos, en cada método de su manera correspondiente. Por un lado, vemos que en el procesamiento de genes (limpieza) se eliminan un mayor número de genes con el método edgeR clásico.
+
+Por otro lado, observamos como obtenemos un porcentaje mayor de genes significativos con el método edgeR clásico, que con el método de análisis basado en la binomial negativa (DESeq2). 
+
+| Método ED 	| Genes Totales (procesado) 	| Genes p-valores (<0,05) 	| Genes BH (<0,05) 	| Genes Bonferroni (<0,05) 	|
+|-----------	|---------------------------	|-------------------------	|------------------	|--------------------------	|
+| edgeR     	| 13204                     	| 3349 (25,4%)            	| 1787 (13,5%)     	| 376 (2,8%)               	|
+| DESeq2    	| 16934                     	| 3969 (23,4%)            	| 2105 (12,4%)     	| 464 (%2,7%)              	|
+

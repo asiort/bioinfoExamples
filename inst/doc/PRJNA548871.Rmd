@@ -1,0 +1,200 @@
+---
+title: "PRJNA548871"
+author: "Asier Ortega Legarreta"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{PRJNA548871}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+```{=html}
+<style>
+body {
+text-align: justify}
+</style>
+```
+
+```{r,echo=FALSE}
+doAll = FALSE
+```
+
+# Tarea 2
+
+## Descripción del experimento
+
+**Título**: Temporo-spatial distribution and transcriptional profile of retinal microglia in the oxygen-induced retinopathy mouse model
+
+**Resumen**: Myeloid cells such as resident retinal microglia or infiltrating blood-derived macrophages accumulate in areas of retinal ischemia and neovascularization (RNV) and modulate neovascular eye disease. Their temporo-spatial distribution and biological function in this process, however, remain unclarified. We determined the extent of microglia proliferation and macrophage infiltration in areas of ischemia and RNV using Cx3cr1CreERT2:Rosa26-tdTomato mice and assessed the transcriptional profile of microglia in the oxygen-induced retinopathy (OIR) mouse model. We show that microglia are the predominant myeloid cell population in areas of RNV. Thirty percent of retinal microglia were EdU-positive indicating considerable expansion of local microglia. RNA-Seq revealed an enrichment of processes related to cell division and chemokine receptor binding. We propose that activated retinal MG alter their transcriptional profile, exhibit proliferative ability and are by far the most frequent myeloid cell population in areas of RNV in the OIR model thus presenting a potential target for future therapeutic approaches. 
+
+**Objetivo**: Examination of the transcriptional profile of retinal microglia cells in the healthy retina and in the oxygen-induced retinopathy model.
+
+### Datos del experimento
+
+- Animal de estudio: Mus musculus
+- Número de muestras:  16
+- Tecnología: Illumina HiSeq 1000 (Mus musculus)
+
+En este experimento tendremos por un lado 8 muestras con tratamiento (oxygen-induced retinopathy, **OIR**) y otras 8 muestras sin tratamiento (**nonOIR**).
+
+## Obtención de los datos
+
+Crearemos un directorio llamado bamfiles donde descargaremos los diferentes archivos y alinearemos las secuencias en el mismo generando los ficheros sam y después pasándolos a bam. 
+
+```{bash, eval=doAll}
+mkdir ../../bamfiles
+```
+
+De la página del NCBI poniendo nuestro identificador BioProyect tenemos acceso a la información del estudio, los metadatos, el "Accesión list" y las muestras. Desde esta página es una manera de descargar las muestras. Utilizaremos wget.
+[Link del estudio PRJNA548871.](https://www.ncbi.nlm.nih.gov/Traces/study/?acc=PRJNA548871)
+
+```{bash, eval=doAll}
+cd ../../bamfiles
+wget https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos3/sra-pub-run-21/SRR9302311/SRR9302311.1
+wget https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos3/sra-pub-run-19/SRR9302312/SRR9302312.1
+wget https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos3/sra-pub-run-19/SRR9302313/SRR9302313.1
+wget https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos3/sra-pub-run-19/SRR9302314/SRR9302314.1
+wget https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos2/sra-pub-run-15/SRR9302315/SRR9302315.1
+wget https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos2/sra-pub-run-15/SRR9302316/SRR9302316.1
+wget https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos2/sra-pub-run-15/SRR9302317/SRR9302317.1
+wget https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos3/sra-pub-run-20/SRR9302318/SRR9302318.1
+wget https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos2/sra-pub-run-15/SRR9302319/SRR9302319.1
+wget https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos3/sra-pub-run-21/SRR9302320/SRR9302320.1
+wget https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos3/sra-pub-run-19/SRR9302321/SRR9302321.1
+wget https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos2/sra-pub-run-15/SRR9302322/SRR9302322.1
+wget https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos2/sra-pub-run-15/SRR9302323/SRR9302323.1
+wget https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos3/sra-pub-run-21/SRR9302324/SRR9302324.1
+wget https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos3/sra-pub-run-20/SRR9302325/SRR9302325.1
+wget https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos3/sra-pub-run-20/SRR9302326/SRR9302326.1
+```
+
+Otra manera de descargar los datos es utilizando prefetch de SRA-Toolkit, este por defecto te descarga los ficheros en el directorio ~/ncbi/public/sra/. Para decirle que nos descargue los ficheros en el directorio que trabajamos le diremos la opción -O y la ruta donde queremos que se descarguen los ficheros. 
+
+```{bash, eval=doAll}
+prefetch -O ../../bamfiles/ --option-file estadistica/SRR_Acc_List.txt
+```
+
+### Descarga del genoma de referencia y fichero de anotaciones
+
+Nos descargaremos el genoma de referencia (ya anotado) junto con el fichero de anotaciones de genes desde igenomes de Ensembl. Descargaremos el genoma de referencia GRCm38 que es el mismo que utilizan en el experimento.
+
+```{bash, eval=doAll}
+wget http://igenomes.illumina.com.s3-website-us-east-1.amazonaws.com/Mus_musculus/Ensembl/GRCm38/Mus_musculus_Ensembl_GRCm38.tar.gz
+tar xzvf Mus_musculus_Ensembl_GRCm38.tar.gz
+```
+
+## Alineamiento de las reads
+
+Una vez hayamos descargado todos los ficheros los pasaremos de formato NCBI-SRA a FASTQ, para ello utilizaremos fastq-dump de SRA-Toolkit. Para facilitar el proceso utilizaremos el "Accesion list" de nuestro proyecto.
+Con un bucle donde por cada muestra lo pasaremos a formato FASTQ, y después mapearemos estas reads contra el genoma de referencia (obtenida de ENSEMBL) con el ensamblador bowtie2, obteniendo así un fichero sam con las reads mapeadas. 
+Después con samtools, convertiremos y ordenaremos dichas reads a formato bam. 
+
+```{bash, eval=doAll}
+cat SRR_Acc_List.txt | while read file
+do 
+	fastq-dump -I --split-files $file.sra
+	time bowtie2 --threads 8 -x Mus_musculus/Ensembl/GRCm38/Sequence/Bowtie2Index/genome -U ../$file"_1.fastq" -S $file"_1.sam"
+	time samtools view --threads 8 -bS $file"_1.sam" | samtools sort --threads 8 -o $file"_1.bam" 
+done
+```
+  
+Una vez obtenidos todos los ficheros bam, generaremos un fichero con los nombres de todos los ficheros bams.
+
+```{bash, eval=doAll}
+ls *.bam > bamfiles.txt
+```
+
+## Generando el SummarizeExperiment
+
+Cargamos todas las librerias que utilizaremos. Con p_load() en caso de no tener instalado dicho paquete lo instalaremos. Los paquetes que utilizaremos:
+
+- Rsamtools: Binary alignment (BAM), FASTA, variant call (BCF), and tabix file import.
+- GenomicFeatures: Conveniently import and query gene models.
+- GenomicAlignments: Representation and manipulation of short genomic alignments.
+- AnnotationDbi: Manipulation of SQLite-based annotations in Bioconductor.
+- org.Mm.eg.db: org.Mm.eg.db annotation Package.
+
+```{r, eval=doAll}
+library(pacman)
+pacman::p_load(Rsamtools)
+pacman::p_load(GenomicFeatures)
+pacman::p_load(GenomicAlignments)
+pacman::p_load(AnnotationDbi)
+pacman::p_load(org.Mm.eg.db)
+```
+
+Utilizamos el paquete Rsamtools para hacer el conteo de las reads alineadas. Para ello necesitaremos los ficheros bams y el fichero de anotación.
+
+```{r, eval=doAll}
+setwd("../../bamfiles")
+sampleTable = read.table("bamfiles.txt")
+dirActual =  paste(getwd(), "/", sep="")
+fls = paste(dirActual, sampleTable[,1], sep = "")
+bamList = BamFileList(fls, index = character(), yieldSize = 100000, obeyQname = TRUE)
+gtfFile = "Mus_musculus/Ensembl/GRCm38/Annotation/Genes/genes.gtf"
+txdb = makeTxDbFromGFF(gtfFile, format = "gtf")
+genes = exonsBy(txdb, by="gene")
+PRJNA548871 = summarizeOverlaps(features = genes, read=bamList,
+    mode="Union",
+    singleEnd=TRUE,    ## Porque no son lecturas apareadas
+    ignore.strand=TRUE,
+    fragments=FALSE)
+```
+
+### Introducción de los metadatos
+
+Ahora introduciremos los metadatos de nuestro experimento.
+
+```{r, eval=doAll}
+SampleName = paste("GSM38909", 42:57, sep = "")
+Run = paste("SRR93023", 11:26, sep = "")
+treatment = factor(c(rep("OIR", 8), rep("nonOIR", 8)))
+colData(PRJNA548871) = DataFrame(SampleName,Run , treatment)
+metadata(PRJNA548871)=list("Experimenter name"="Clemens Lange",
+                           "Organization"="Uniklinik Freiburg",
+                           "Title"="Temporo-spatial distribution and transcriptional profile of retinal microglia in the oxygen-induced retinopathy mouse model",
+                           "URL"="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE132731", 
+                           "Abstract"= " Myeloid cells such as resident retinal microglia or infiltrating blood-derived macrophages accumulate in areas of retinal ischemia and neovascularization (RNV) and modulate neovascular eye disease. Their temporo-spatial distribution and biological function in this process, however, remain unclarified. We determined the extent of microglia proliferation and macrophage infiltration in areas of ischemia and RNV using Cx3cr1CreERT2:Rosa26-tdTomato mice and assessed the transcriptional profile of microglia in the oxygen-induced retinopathy (OIR) mouse model. We show that microglia are the predominant myeloid cell population in areas of RNV. Thirty percent of retinal microglia were EdU-positive indicating considerable expansion of local microglia. RNA-Seq revealed an enrichment of processes related to cell division and chemokine receptor binding. We propose that activated retinal MG alter their transcriptional profile, exhibit proliferative ability and are by far the most frequent myeloid cell population in areas of RNV in the OIR model thus presenting a potential target for future therapeutic approaches.")
+```
+
+### Anotación
+
+Procedemos a anotar los genes con distintos identificadores. Primero debemos mirar nuestro paquete, según el organismo, que tipo de identificadores tiene. Como el genoma de referencia y el fichero de anotaciones son del Ensembl, identificaremos nuestros genes por dicho ID. 
+Para comprobar que se ha anotado correctamente podemos utilizar rowData(PRJNA548871). 
+
+A continuación tendremos algunos identificadores que no estarán anotados, para trabajar de una manera más cómoda quitaremos estos identificadores que no tengan el identificador de ENSEMBL. 
+
+```{r, eval=doAll}
+columns(org.Mm.eg.db)
+a = AnnotationDbi::select(org.Mm.eg.db,keys=rownames(PRJNA548871),
+                          columns = c("GENENAME","ENTREZID","ENSEMBL", "SYMBOL"), keytype = "ENSEMBL")
+b = match(rownames(PRJNA548871),a[,"ENSEMBL"])
+rowData(PRJNA548871) = a[b,]
+PRJNA548871 = PRJNA548871[which(!is.na(rowData(PRJNA548871)[,"ENSEMBL"])),]
+seleccion = match(unique(rowData(PRJNA548871)[,"ENSEMBL"]), rowData(PRJNA548871)[,"ENSEMBL"])
+PRJNA548871 = PRJNA548871[seleccion,]
+PRJNA548871
+assay(PRJNA548871)
+```
+
+### Eliminación de los genes sin ninguna read alineada
+
+Observamos que nuestro SummarizeExperiment tiene un total de 46078 filas (genes), pero no todas ellas tienen reads alineadas. Por eso ahora de nuestro SummarizeExperiment eliminaremos aquellos genes sin ninguna read alineada. 
+
+```{r, eval=doAll}
+nullsum = apply(assay(PRJNA548871), 1, sum) == 0
+PRJNA548871 = PRJNA548871[!nullsum,]
+PRJNA548871
+assay(PRJNA548871)
+```
+
+Una vez eliminamos aquellos genes sin ninguna read alineada nos quedan 27518 genes (de las que tienen al menos 1 read alineada en el). Es decir, al mapear nuestras reads contra el genoma de referencia en el 40,279% de los genes no se ha alineado ninguna read.
+
+### Guardado de los datos
+
+Una vez ya hemos generado, anotado y eliminado los genes sin ninguna read guardaremos nuestro SummarizeExperiment, para posteriormente poder trabajar con el.
+
+```{r, eval=doAll}
+save(PRJNA548871, file = "PRJNA548871.rda")
+```
+

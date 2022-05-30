@@ -1,0 +1,338 @@
+---
+title: "Análisis de grupos de genes"
+author: "Asier Ortega Legarreta"
+date: "`r Sys.Date()`"
+output:   
+  html_document:
+    df_print: paged
+    latex_engine: lualatex
+  pdf_document:
+    latex_engine: lualatex
+vignette: >
+  %\VignetteIndexEntry{tarea51}
+  \usepackage[utf8]{inputenc}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+```{=html}
+<style>
+body {
+text-align: justify}
+</style>
+```
+
+# Tarea 51
+
+```{r}
+doAll = FALSE
+```
+
+Cargamos las librerías que utilizaremos.
+
+- pacman: Package Management Tool 
+- asierortega: contains the data we going to work with, and useful functions.
+- EnrichmentBrowser: Seamless navigation through combined results of set-based and network-based enrichment analysis.
+- Biobase: Base functions for Bioconductor.
+- SummarizedExperiment: SummarizedExperiment container.
+
+```{r, eval=doAll}
+library(pacman)
+library(asierortega)
+pacman::p_load(EnrichmentBrowser)
+pacman::p_load(Biobase)
+pacman::p_load(SummarizedExperiment)
+```
+
+&nbsp;
+
+## Análisis del data set de microarray
+
+#### Carga de datos
+Cargamos el fichero **gse115484.rda** generado en la tarea 1 de microarrays. Previamente estos datos han sido preprocesados normalizándolos con el método RMA.
+
+```{r, eval = doAll}
+data(gse115484, package = "asierortega")
+```
+
+En los datos guardados tenemos varias sondas a las que no les corresponde ningún gen o que no se le ha asignado ningún gen, por lo que eliminaremos todas aquellas sondas que no estén anotados. De esta manera solamente trabajaremos con sondas que correspondan a genes. De 24123 sondas hemos pasado a tener 9887 sondas anotados. Recordemos que estamos trabajando con sondas del Microarray Affymetrix Porcine.
+
+```{r, eval = doAll}
+gse115484 = asierortega::unifyeset(gse115484, ID = "ENTREZID")
+```
+
+&nbsp;
+
+## Análisis de sobre representación
+
+Convertimos el ExpressionSet en SummarizedExperiment, y lo prepararemos cambiando los identificadores de las sondas por los identificadores de los genes.
+
+```{r, eval = doAll}
+se115484 = makeSummarizedExperimentFromExpressionSet(gse115484)
+se115484 = probe2gene(se115484)
+``` 
+
+&nbsp;
+
+#### Análisis de expresión diferencial de las t-moderadas
+
+Para poder utilizar la función deAna que es el que realiza el análisis de expresión diferencial entre dos grupos, necesitamos introducir una variable fenotípica llamada **GROUP** que contenga valores '0' y '1'. Para ello añadiremos una columna llamada "GROUP" donde si el tejido es "Gluteus medius" tendra valor de 0 y si es "Liver" valor de 1. 
+
+```{r, eval = doAll}
+se115484$GROUP = se115484$Tissue  
+levels(se115484$GROUP)[levels(se115484$GROUP)=="Gluteus medius"] = 0
+levels(se115484$GROUP)[levels(se115484$GROUP)=="Liver"] = 1
+```
+
+Ahora que tenemos nuestro SummarizedExperiment preparado realizaremos el análisis de las t-mdoeradas, el mismo procedimiento que sigue limma. Observamos como nos ha realizado el análisis de expresión diferencial, y obtenemos los p-valores y los p-valores ajustados.
+
+```{r, eval = doAll}
+se115484 = deAna(expr = se115484) 
+head(rowData(se115484))
+```
+
+&nbsp;
+
+#### Grupos de genes con KEGG
+
+Utilizaremos los grupos de genes con **KEGG** (Kyoto Encyclopedia of Genes and Genomes). Recordemos que en este experimento de microarrays estamos trabajando con el organismo Sus scrofa (cerdo) por lo que tenemos que buscar su identificador de tres letras KREGG, para ello tenemos el siguiente [link](https://www.genome.jp/kegg/catalog/org_list.html). En nuestro caso es 'ssc'. 
+Y observamos la información que contiene los genes y sus códigos ENTREZID para las distintas rutas metabólicas. Después lo guardamos.
+
+```{r, eval = doAll}
+sscKEGGgsc= getGenesets("ssc", db = "kegg")
+head(names(sscKEGGgsc))
+save(sscKEGGgsc, file = "sscKEGGgsc.rda")
+```
+
+En caso de no querer generarlo y guardarlo, tenemos guardado esta información en la carpeta 'Data' de nuestro paquete y podemos cargarla directamente.
+
+```{r, eval = doAll}
+data(sscKEGGgsc, package = "asierortega")
+```
+
+&nbsp;
+
+#### Análisis sobrerepresentación (test de Fisher)
+
+Ahora realizaremos un análisis de sobre representación con el test de Fisher unilateral. Debemos seleccionar el método 'ora' (aunque también es el método por defecto), y en el argumento gs (Gene sets) el que acabamos de generar que contiene la información de KREGG. Después mostramos los resultados obtenidos con gsRanking. 
+
+```{r, eval = doAll}
+se115484.oraKEGG= sbea(method = "ora", se = se115484, gs = sscKEGGgsc,
+                      perm = 0, alpha = 0.05)
+gsRanking(se115484.oraKEGG)
+```
+
+A continuación obtendremos los p-valores ajustados por los métodos de Benjamini-Hochberg y de Bonferroni.
+
+```{r, eval = doAll}
+pvalues = gsRanking(se115484.oraKEGG)$PVAL
+pBH = p.adjust(pvalues, method = "BH")
+pBonferroni = p.adjust(pvalues, method = "bonferroni")
+```
+
+Fijamos una tasa de error alpha = 0.05. Y veremos aquellos genes con un p-valor y p-valor ajustado menores a nuestra tasa de especificada, es decir que sean significativos. Utilizaremos los p-valores obtenidos con la dispersión por gen.
+
+```{r, eval = doAll}
+length(pvalues)
+alpha = 0.05
+significativos_p = which(pvalues < alpha)
+length(significativos_p)
+
+significativos_BH = which(pBH < alpha)
+length(significativos_BH)
+
+significativos_Bonferroni =  which(pBonferroni < alpha)
+length(significativos_Bonferroni)
+```
+
+Observamos como los 16 grupos dan significativos con los p-valores y los p-valores ajustados con el método de Benjamini-Hochberg, por otro lado en el método ajustado con Bonferroni solamente 1 grupo es significativo.  
+
+&nbsp;
+
+### Generando el DataFrame
+
+Ahora generaremos el dataframe con la información obtenida en el apartado anterior y los p-valores ajustados. 
+
+```{r, eval = doAll}
+cabeceras = c(colnames(gsRanking(se115484.oraKEGG)), "p.adjust_BH", "p.adjust_Bonferroni")
+kegg_url = asierortega::kegg2url(gsRanking(se115484.oraKEGG)[, "GENE.SET"])
+
+## Construimos dataframe
+df_kegg = data.frame(gsRanking(se115484.oraKEGG)[, "GENE.SET"], gsRanking(se115484.oraKEGG)[, "NR.GENES"], gsRanking(se115484.oraKEGG)[, "NR.SIG.GENES"],  gsRanking(se115484.oraKEGG)[, "PVAL"], pBH, pBonferroni)
+
+df_kegg_hip = data.frame(kegg_url, gsRanking(se115484.oraKEGG)[, "NR.GENES"], gsRanking(se115484.oraKEGG)[, "NR.SIG.GENES"],  gsRanking(se115484.oraKEGG)[, "PVAL"], pBH, pBonferroni)
+
+colnames(df_kegg) = cabeceras
+head(df_kegg)
+```
+
+&nbsp;
+
+### Función overex2df
+
+He creado una función llamada **overex2df** el cual le pasamos por argumento un SummarizedExperiment y un grupo de genes y devuelve el un dataframe con los grupos de genes su información y los p-valores obtenidos con el test de Fisher unilateral y sus p-valores con Benjamini-Hochberg y Bonferroni.
+
+COMPROBAR QUE LA FUNCION FUNCIONA
+
+```{r, eval = doAll, warning = FALSE}
+df_kegg_prueba = overex2df(se115484, sscKEGGgsc, hiperlink = FALSE)
+df_hip_kegg_prueba = overex2df(se115484, sscKEGGgsc, hiperlink = TRUE)
+```
+
+&nbsp;
+
+### Generar informe
+
+Generaremos el informe del dataframe generado con la función que del paquete asierortega **makeReport**.
+
+```{r, eval=doAll}
+makeReport(df_kegg_hip, name = "Informe_GroupAnalysis_GSE115484", path = "../docs/articles")
+```
+
+&nbsp;
+
+### Utilizando Gene Ontology
+
+Repetiremos el proceso utilizando otra base de datos en vez de KEGG utilizaremos GO (Gene Ontology). Y lo guardamos
+
+```{r, eval = doAll}
+sscGOBPgsc = getGenesets(org = "ssc",db = "go", onto="BP")
+save(sscGOBPgsc, file = "sscGOBPgsc.rda")
+```
+
+Igual que en el caso anterior si no queremos generarlo esta ya generado y guardado en el paquete asierortega en el directorio 'Data', por lo que podemos cargarlo.
+
+```{r, eval = doAll}
+data(sscGOBPgsc, package = "asierortega")
+```
+
+```{r, eval = doAll}
+se115484.GOBPora = sbea(method = "ora", se = se115484, gs = sscGOBPgsc, 
+                       perm = 0, alpha = 0.05)
+gsRanking(se115484.GOBPora)
+```
+
+Podemos ver como al utilizar la base de datos de GO solamente conseguimos 2 grupos de genes, mientras que con la de KEGG 16. 
+
+&nbsp;
+
+## Análisis del data set de RNA-seq
+
+Cargamos el  **PRJNA548871.rda** generado en la tarea 2 (llamado PRJNA548871.Rmd) de RNA-seq.
+
+```{r, eval = doAll}
+data(PRJNA548871, package = "asierortega")
+```
+
+Quitaremos aquellos genes que no estén anotados por ninguna de las tres identificadores que le añadimos "GENENAME", "ENTREZID" y "SYMBOL". Utilizando la función que creamos limpiaremos los genes con NA en todos los identificadores. 
+
+```{r, eval = doAll}
+PRJNA548871 = cleanNA(PRJNA548871, Ncolumns = 3)
+```
+
+&nbsp;
+
+### Análisis de sobre representación
+
+Al tener un SummarizedExperiment no tenemos que generar uno a partir del ExpressionSet como en el anterior caso, y podemos empezar con el análisis. Pero recordemos que tiene como identificador el ENSEMBL y debemos indicarle que tenga el de ENTREZID para más tarde así con la función getGeneSet realizar el análisis de sobre representación con el test de Fisher unilateral, utilizaremos la función probe2gene de tami.
+
+```{r, eval = doAll}
+PRJNA548871 = probe2gene(PRJNA548871, from = "ENSEMBL", to = "ENTREZID")
+```
+
+
+```{r, eval = doAll}
+PRJNA548871$GROUP = PRJNA548871$treatment 
+levels(PRJNA548871$GROUP )[levels(PRJNA548871$GROUP )=="nonOIR"] = 0
+levels(PRJNA548871$GROUP )[levels(PRJNA548871$GROUP )=="OIR"] = 1
+```
+
+Ahora que tenemos nuestro SummarizedExperiment preparado realizaremos el análisis de las t-moderadas.
+
+```{r, eval = doAll}
+PRJNA548871 = deAna(expr = PRJNA548871) 
+head(rowData(PRJNA548871))
+```
+
+&nbsp;
+
+#### Grupos de genes con KEGG
+
+Utilizaremos los grupos de genes con **KEGG**. Recordemos que en este experimento de RNA-seq estamos trabajando con el organismo Mus musculus (ratón), consultando el link [link](https://www.genome.jp/kegg/catalog/org_list.html). En nuestro caso es 'mmu'. 
+
+```{r, eval = doAll}
+mmuKEGGgsc= getGenesets("mmu",db = "kegg")
+head(names(mmuKEGGgsc))
+save(mmuKEGGgsc, file = "mmuKEGGgsc.rda")
+```
+
+En caso de no querer generarlo y guardarlo, tenemos guardado esta información en la carpeta 'Data' de nuestro paquete y podemos cargarla directamente.
+
+```{r, eval = doAll}
+data(mmuKEGGgsc, package = "asierortega")
+```
+
+&nbsp;
+
+#### Análisis sobrerepresentación (test de Fisher)
+
+Ahora realizaremos un análisis de sobre representación con el test de Fisher unilateral. 
+
+```{r, eval = doAll}
+PRJNA548871.oraKEGG= sbea(method = "ora", se = PRJNA548871, gs = mmuKEGGgsc,
+                      perm = 0, alpha = 0.05)
+gsRanking(PRJNA548871.oraKEGG)
+```
+
+A continuación obtendremos los p-valores ajustados por los métodos de Benjamini-Hochberg y de Bonferroni.
+
+```{r, eval = doAll}
+pvalues = gsRanking(PRJNA548871.oraKEGG)$PVAL
+pBH = p.adjust(pvalues, method = "BH")
+pBonferroni = p.adjust(pvalues, method = "bonferroni")
+```
+
+&nbsp;
+
+### Generando el DataFrame
+
+Antes hemos creado la función **overex2df**, la utilizamos. 
+
+Ahora generaremos el dataframe con la información obtenida en el apartado anterior y los p-valores ajustados. 
+
+```{r, eval = doAll}
+cabeceras_rna = c(colnames(gsRanking(PRJNA548871.oraKEGG)), "p.adjust_BH", "p.adjust_Bonferroni")
+kegg_url_rna = asierortega::kegg2url(gsRanking(PRJNA548871.oraKEGG)[, "GENE.SET"])
+
+## Construimos dataframe
+df_kegg_rna = data.frame(gsRanking(PRJNA548871.oraKEGG)[, "GENE.SET"],  gsRanking(PRJNA548871.oraKEGG)[, "NR.GENES"],  gsRanking(PRJNA548871.oraKEGG)[, "NR.SIG.GENES"],  gsRanking(PRJNA548871.oraKEGG)[, "PVAL"], pBH, pBonferroni)
+
+df_kegg_hip_rna = data.frame(kegg_url_rna, gsRanking(PRJNA548871.oraKEGG)[, "NR.GENES"], gsRanking(PRJNA548871.oraKEGG)[, "NR.SIG.GENES"],  gsRanking(PRJNA548871.oraKEGG)[, "PVAL"], pBH, pBonferroni)
+
+colnames(df_kegg_rna) = cabeceras_rna
+colnames(df_kegg_hip_rna) = cabeceras_rna
+head(df_kegg_rna)
+```
+
+He creado una función llamada **overex2df** el cual le pasamos por argumento un SummarizedExperiment y un grupo de genes y devuelve el un dataframe con los grupos de genes su información y los p-valores obtenidos con el test de Fisher unilateral y sus p-valores con Benjamini-Hochberg y Bonferroni.
+
+```{r, eval = doAll, warning = FALSE}
+data(PRJNA548871, package = "asierortega")
+PRJNA548871 = cleanNA(PRJNA548871, Ncolumns = 3)
+PRJNA548871 = probe2gene(PRJNA548871, from = "ENSEMBL", to = "ENTREZID")
+PRJNA548871$GROUP = PRJNA548871$treatment 
+levels(PRJNA548871$GROUP )[levels(PRJNA548871$GROUP )=="nonOIR"] = 0
+levels(PRJNA548871$GROUP )[levels(PRJNA548871$GROUP )=="OIR"] = 1
+
+df_kegg_rna_prueba = overex2df(PRJNA548871, mmuKEGGgsc, hiperlink = FALSE)
+df_hip_kegg_rna_prueba = overex2df(PRJNA548871, mmuKEGGgsc, hiperlink = TRUE)
+```
+
+&nbsp;
+
+### Generar informe
+
+Generaremos el informe del dataframe generado con la función que del paquete asierortega **makeReport**.
+
+```{r, eval=doAll}
+makeReport(df_kegg_hip_rna, name = "Informe_GroupAnalysis_PRJNA548871", path = "../docs/articles")
+```
+

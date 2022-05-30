@@ -1,0 +1,252 @@
+---
+title: "GSE115484"
+author: "Asier Ortega Legarreta"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{GSE115484}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+```{=html}
+<style>
+body {
+text-align: justify}
+</style>
+```
+
+```{r}
+doAll = FALSE
+```
+
+# Tarea 1
+
+## Descripción del experimento
+
+**Título**: datos de expresión del experimento de microarrays en tejidos musculares y hepáticos (en Sus scrofa).
+
+**Resumen**: en este estudio se han comparado tanto los perfiles transcriptómicos y eQTL tanto del hígado como del músculo esquelético porcino. Para ello se han utilizado un conjunto de 103 individuos de cerdos "Duroc" genotipados con Illumina SNP60 BeadChip y con las mediciones de microarrays disponibles de expresión génica para ambos tejidos mencionados. 
+
+**Objetivo**: partiendo (de la hipótesis) de que el músculo esquelético y el hígado tienen perfiles de expresión génicas muy divergentes. Encontrar aquellos genes que se expresén de una manera similar, y así poder encontrar aquellos genes que su expresión se regula de manera dependiente entre ambos tejidos.   
+
+### Datos experimentales
+
+- Animal de estudio: Sus scrofa
+- Número de muestras:  206
+- Array: [Porcine] Affymetrix Porcine Genome Array
+
+Los paquetes que utilizaremos:
+
+- GEOquery: get data from NCBI GEO
+- oligo: preprocessing tools for oligonucleotide arrays
+- Biobase: base functions for Bioconductor
+- porcine.db: affymetrix porcine annotation data (chip porcine) assembled using data from public repositories
+- AnnotationDbi: manipulation of SQLite-based annotations in Bioconductor.
+
+Utilizamos la función p_load del paquete pacman para cargar las librerías, y en caso de no tenerlas instalados dichos paquetes.
+
+```{r, eval=doAll}
+library(pacman)
+pacman::p_load(GEOquery)
+pacman::p_load(oligo)
+pacman::p_load(Biobase)
+pacman::p_load(porcine.db)
+pacman::p_load(AnnotationDbi)
+```
+
+## Descarga de los ficheros
+
+La funcion getGEOSuppFiles del paquete GEOquery descarga los fichero de la serie con identificador especificado, en este caso "GSE115484".
+Los ficheros se descargaran dentro de un directorio con el nombre de la serie en el director de trabajo.  
+Estos ficheros estan comprimidos por lo que deberemos descomprimirlos. Para hacerlo dentro del directorio generado cambiaremos el directorio de trabajo.
+Luego eliminaremos el fichero descargado inicialmente "GGSE115484_RAW.tar".
+
+**Comentario**: Al tratarse de un estudio con muchas muestras (206) estudios, debemos de descargar un total de 385,4MB. Dependiendo de la conexión y del ordenador esto podría superar el valor maximo de tiempo de descarga por defecto (60 segundos), es por ello que vamos a poner como defecto un máximo de 360 segundos de descarga. En caso de superar este limite podemos modificarlo manualmente, introduciendo el valor que creamos oportuno. 
+
+```{r, eval=doAll}
+options(timeout = 360)
+getGEOSuppFiles("GSE115484")
+setwd("GSE115484")
+system("tar -xvf GSE115484_RAW.tar")
+system("rm GSE115484_RAW.tar")
+```
+
+### Obtención de los datos y guradado
+
+Una vez extraido los fichero de la base de datos y descomprimirlos utilizaremos la función ReadAffy del paquete affy que nos permite leer los ficheros CEL y lo gaurdaremos en el directorio data como "gse115484_raw.rda". Estos serán los datos antes del preprocesamiento.
+Borraremos el directorio y todos los ficheros generados durante la descarga. 
+
+**Comentario**: vamos a leer con la función read.celfiles solamente aquellos ficheros CEL. Como es posible que al descargar con la función getGEOSuppFiles el estudio tenga otro tipos de ficheros que también se descarguen en el mismo directorio, a la hora de obtener la lista de los ficheros del directorio solamente incluiremos aquellos que incluyan en su nombre CEL (pattern="CEL"). Aunque este no es el caso de nuestro estudio.
+
+```{r, eval=doAll}
+path = getwd()
+setwd("GSE115484")
+cel_files = list.files(getwd(), pattern = "CEL" ,full.names = TRUE)
+rawData = read.celfiles(cel_files)
+system("rm *CEL.gz")
+system("rm -fr ../GSE115484")
+```
+
+
+## Estudio de la calidad de las muestras antes del preprocesado
+
+Realizaremos los estudios de calidad con los datos antes del preprocesamiento, que incluirán:
+
+- Los dibujos media-diferencia de Tukey o MA-plot en el contexto ómico.
+- Una comparación de los estimadores de densidad.
+- Una comparación entre los diagramas de cajas.
+
+Creamos una matriz de expresión con la función exprs() de bioconductor. Le preguntamos las dimensiones que tiene dicha matriz, el nombre de sus columnas y sus filas. 
+Observamos que en las columnas estan las muestras, y en las filas los genes que estan identificados por numeros (de manera ascendente). Esto más tarde lo podremos asignarles el nombre de los genes o el identificador correspondiente en el apartado de la anotación. 
+
+```{r, eval=doAll}
+exprsMraw = exprs(rawData)
+dim(exprsMraw)
+colnames(exprsMraw)
+row.names(exprsMraw)
+```
+
+### Dibujo de MA-plot en el contexto ómico previo al preprocesamiento
+
+Realizamos los **MA-plot** de cada array contra el pseudoarray previo al preprocesamiento, normalización, de los datos.
+Para ello utilizamos la función MAplot del paquete oligo.
+
+Estos dibujos sirven para:
+- Determinar si en el estudio convendria descartar alguno de los microarraysdebe.
+- Si es necesario homogeneizar los valores para las distintas muestras
+
+En los dibujos estudiaremos la variabilidad intra y entre arrays para un mismo gen.
+
+```{r, eval=doAll}
+MAplot(rawData)
+```
+
+### Estimadores de densidad previo al preprocesamiento
+
+Realizaremos un **dibujo de densidades** con la función hist del paquete oligo. No es un histograma sino un estimador kernel de la densidad. 
+Este dibujo nos permite observar de manera global la variabilidad las densidades de las expresiones en cada uno de los arrays que componen nuestra muestra.
+
+```{r, eval=doAll}
+hist(rawData, ylab="Density", xlab = "log Intensity", 
+     main = "Estimadores de la densidad de las intensidades previo al preprocesado")
+```
+
+En el dibujo de densidad es apreciable la diferencia que hay en los estimadores de la densidad para los distintos microarrays. Podemos observar que aunque todos tengan una tendencia similar, se puede observar una asimetria en la parte izquierda, en los mayores valores de densidad. También es observable como unas pocas de ellas estan desplazados más hacia la derecha, es decir, muestran su valor máximo de densidad a un valor de logIntensidad mayor. 
+
+
+### Diagrama de cajas previo al preprocesamiento
+
+De la misma manera para poder evaluar la variabilidad de las expresiones en los distintos microarrays y entre ellas mismas utilizaremos **diagramas de cajas**. Para ello usamos la función boxplot del paquete oligo.
+
+```{r, eval=doAll}
+boxplot(rawData, col="white", 
+        main="Comparacion Diagramas Cajas previo al preprocesado",
+        ylab="Log2 Intensity", xlab="Samples", names = FALSE) 
+```
+
+Es observable algunas muestras (unas tres), con el bigote superior más larga que el resto de muestras. Esto corresponde a los casos con los genes con una alta expresión.
+
+## Preprocesamiento de los datos con el procedimiento RMA
+
+RMA: Robust Multichip Average algorithm
+Realizamos el preprocesamiento de los datos con el método **RMA**.
+
+```{r, eval=doAll}
+dataRMA = rma(rawData)
+exprM = exprs(dataRMA)
+```
+
+Una vez normalizado los datos (preprocesados) volvemos a repetir los estudios de calidad con estos nuevos datos. 
+
+### Dibujo de MA-plot en el contexto ómico posterior al preprocesamiento
+
+Realizamos los **MA-plot** de cada array contra el pseudoarray posterior al preprocesamiento, normalización, de los datos.
+
+```{r, eval=doAll}
+MAplot(dataRMA)
+```
+
+### Estimadores de densidad posterior al preprocesamiento
+
+Realizaremos un **dibujo de densidades** posterior al preprocesamiento.
+
+```{r, eval=doAll}
+hist(dataRMA, ylab="Density", xlab = "log Intensity", 
+    main = "Estimadores de la densidad de las intensidades posterior al preprocesado")
+```
+
+Podemos observar como una vez preprocesado los datos, en el dibujo de densidad no es apreciable una gran diferencia entre los estimadores de la densidad para los distintos microarrays. Todos mantienen un comportamiento similar. 
+
+### Diagrama de cajas posterior al preprocesamiento
+
+Realizaremos un **diagrama de cajas** posterior al preprocesado.
+
+```{r, eval=doAll}
+boxplot(dataRMA, col="white", 
+        main="Comparacion Diagramas Cajas posterior al preprocesado",
+        ylab="Log2 Intensity", xlab="Samples", names = FALSE) 
+```
+
+Observamos como todas las muestras muestran un comportamiento similar, y no podemos diferenciar a simple vista bigotes superiores más largos una vez preprocesado las muestras.
+
+## Construir el ExpressionSet
+
+Como hemos visto antes en nuestra matriz de expresión en las columnas tenemos las muestras y en las filas los genes, representados en números de manera ascendente. Al construir el ExpressionSet anotaremos en las filas el nombre del gen. 
+
+Debemos incluir una descripción del experimento, y lo haremos en formato MIAME: minimum information about a microarray ex-periment.
+
+Las muestras están ordenadas de tal manera en el que hay 103 individuos en la que a cada una se le han recogido 2 muestras, una del músculo y otra del hígado de los cerdos. Estas muestras están organizadas de tal manera que las primeras 103 son las muestras del tejido muscular y los otros 103 del hígado. Obteniendo un total de 206 muestras. 
+
+```{r, eval=doAll}
+infoData = new('MIAME',
+           name='Mármol-Sánchez E, Gonzalez-Prendes R',
+           lab='Animal Genetics',
+           contact ='Emilio Marmol <emilio.marmol@cragenomica.es>',
+           title = 'Expression data from Microarray experiment in muscle and liver tissues',
+           abstract = 'Summary: In the current work we have compared the transcriptomic and eQTL profiles of the porcine skeletal muscle and            liver by using a data set of 103 Duroc pigs genotyped with the Illumina SNP60 BeadChip and with available microarray measurements            of gene expression for both tissues.
+  	
+           Overall design: 	Gluteus medius and liver samples were collected from 103 Duroc pigs (Lipgen population) after slaughtering and              immediately frozen at -80ºC in liquid nitrogen. Total RNA was extracted from both GM and liver samples and mRNA expression                   profiles were characterized by hybridization to the GeneChip Porcine arrays',
+           url = 'https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE115484')
+
+finput = paste(getwd(), "/../inst/extdata/sample_attributes3.csv", sep = "")
+pd0 = data.frame(Tissue = factor(c(rep("Gluteus medius", 103), rep("Liver", 103))), Age = rep("190 days", 206))
+rownames(pd0) = colnames(exprM)
+metadatos = data.frame(labelDescription = c("Tissue", "Age"), row.names = colnames(pd0))
+datosfenotipo = new("AnnotatedDataFrame", data=pd0, varMetadata=metadatos)
+gse115484 = new("ExpressionSet", exprs = exprM, phenoData=datosfenotipo, 
+            experimentData=infoData, annotation = "pd.porcine")
+```
+
+## Anotación
+
+A continuación utilizaremos el paquete "pd.porcine" que contiene la información de la plataforma utilizada y el paquete "porcine.db" el cual contiene la indormación de anotaciones del chip utilizado: affymetrix porcine annotation data (chip porcine).
+
+Observaremos que tipo de información/identificadores contiene el paquete de anotación que utilizamos "porcine.db", con la función columns del paquete AnnotationDBi. Nuestro paquete no contiene la información de los identificadores ENSEMBL, porloque utilizaremos por ejemplo los identificadores de REFSEQ. 
+
+```{r,eval=doAll}
+columns(porcine.db)
+identificadores = select(porcine.db, keys = featureNames(gse115484), 
+                  column = c("ENTREZID","REFSEQ","SYMBOL"), keytype = "PROBEID")
+identificadores2 = match(featureNames(gse115484), identificadores[,"PROBEID"])
+fData(gse115484) = identificadores[identificadores2,]
+fData(gse115484)
+fData(gse115484)[!is.na(fData(gse115484)[,"ENTREZID"]),]
+save(gse115484, file = "gse115484.rda")
+```
+
+Podemos observar como hay muchos identificadores del array (PROBEID) que no coincide con ningun identificador del ENTREZID, REFSEQ o SYMBOL y se muestran con el valor de NA. Esto puede llegar a ser corriente debido a sondas de prueba que tiene el propio chip array y no se encuentre en las bases de datos comentadas.
+
+Estudiaremos esto observando las dimensiones de nuestro objeto "feature data" incluyendo aquellas sondas con valor NA y sin ellas. Obtenemos por un lado 24122 (sin contar la fila con títulos) filas que se ha identificado el gen, y en 9887 casos en los que se ha identificado el gen. Es decir, se ha identificado el 40,98% de los genes y el resto son NA. He dejado solamente una sonda por gen, ya que aparecían repetidos.
+
+```{r, eval=doAll}
+dim(fData(gse115484))[1]
+a = dim(fData(gse115484))
+dim(fData(gse115484)[!is.na(fData(gse115484)[,"ENTREZID"]),])[1]
+
+gse115484_limpio = gse115484[which(!is.na(fData(gse115484)[,"ENTREZID"])),]
+seleccion_unica = match(unique(fData(gse115484_limpio)[,"ENTREZID"]),fData(gse115484_limpio)[,"ENTREZID"])
+gse115484_limpio = gse115484_limpio[seleccion_unica,]
+
+b = dim(fData(gse115484_limpio))
+(b[1])/(a[1])
+```
